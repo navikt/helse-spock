@@ -20,8 +20,9 @@ fun createConfigFromEnvironment(env: Map<String, String>) =
             put("kafka.app-id", "spock-v1")
 
             env["KAFKA_BOOTSTRAP_SERVERS"]?.let { put("kafka.bootstrap-servers", it) }
-            env["KAFKA_USERNAME"]?.let { put("kafka.username", it) }
-            env["KAFKA_PASSWORD"]?.let { put("kafka.password", it) }
+
+            put("serviceuser.username", "/var/run/secrets/nais.io/serviceuser/username".readFile() ?: env.getValue("SERVICEUSER_USERNAME"))
+            put("serviceuser.password", "/var/run/secrets/nais.io/serviceuser/password".readFile() ?: env.getValue("SERVICEUSER_PASSWORD"))
 
             env["NAV_TRUSTSTORE_PATH"]?.let { put("kafka.truststore-path", it) }
             env["NAV_TRUSTSTORE_PASSWORD"]?.let { put("kafka.truststore-password", it) }
