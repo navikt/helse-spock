@@ -7,6 +7,11 @@ val kafkaVersion = "2.3.0"
 val prometheusVersion = "0.6.0"
 val micrometerRegistryPrometheusVersion = "1.1.5"
 val junitJupiterVersion = "5.4.0"
+val flywayVersion = "6.0.0-beta"
+val hikariVersion = "3.3.1"
+val vaultJdbcVersion = "1.3.1"
+val kotliqueryVersion = "1.3.0"
+
 val mainClass = "no.nav.helse.spock.AppKt"
 
 plugins {
@@ -24,6 +29,11 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:5.2")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
+    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

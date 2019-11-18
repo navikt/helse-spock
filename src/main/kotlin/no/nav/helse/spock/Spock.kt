@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import com.zaxxer.hikari.HikariConfig
 import io.ktor.application.Application
 import io.ktor.application.ApplicationStarted
 import io.ktor.application.ApplicationStopping
@@ -21,8 +22,32 @@ import java.util.*
 
 private const val sakskompleksEventTopic = "privat-helse-sykepenger-sakskompleks-endret"
 
+fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
+        HikariConfig().apply {
+            this.jdbcUrl = jdbcUrl
+            maximumPoolSize = 3
+            minimumIdle = 1
+            idleTimeout = 10001
+            connectionTimeout = 1000
+            maxLifetime = 30001
+            username?.let { this.username = it }
+            password?.let { this.password = it }
+        }
+
+@KtorExperimentalAPI
+fun Application.createHikariConfigFromEnvironment() =
+        createHikariConfig(
+                jdbcUrl = environment.config.property("database.jdbc-url").getString(),
+                username = environment.config.propertyOrNull("database.username")?.getString(),
+                password = environment.config.propertyOrNull("database.password")?.getString()
+        )
+
 @KtorExperimentalAPI
 fun Application.spockApplication(): KafkaStreams {
+
+    migrate(createHikariConfigFromEnvironment())
+
+    val dataSource = getDataSource(createHikariConfigFromEnvironment()) // todo: ta i bruk
 
     val builder = StreamsBuilder()
 

@@ -58,6 +58,7 @@ fun createApplicationEnvironment(appConfig: ApplicationConfig) = applicationEngi
 
     module {
         val streams = spockApplication()
+
         nais(
                 isAliveCheck = { streams.state().isRunning }
         )
