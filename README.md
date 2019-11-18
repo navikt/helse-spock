@@ -1,7 +1,7 @@
 Spock [![Actions Status](https://github.com/navikt/helse-spock/workflows/master/badge.svg)](https://github.com/navikt/helse-spock/actions)
 =============
 
-Monitorerer sykepengeløsningene
+Monitorerer sykepengeløsningene.
 
 # Henvendelser
 
