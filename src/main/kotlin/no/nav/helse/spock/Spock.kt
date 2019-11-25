@@ -20,7 +20,7 @@ import java.io.File
 import java.time.Duration
 import java.util.*
 
-private const val sakskompleksEventTopic = "privat-helse-sykepenger-sakskompleks-endret"
+private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
 
 fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
         HikariConfig().apply {
@@ -52,7 +52,7 @@ fun Application.spockApplication(): KafkaStreams {
     val builder = StreamsBuilder()
 
     builder.stream<String, String>(
-            listOf(sakskompleksEventTopic), Consumed.with(Serdes.String(), Serdes.String())
+            listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
             .withOffsetResetPolicy(Topology.AutoOffsetReset.LATEST)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
