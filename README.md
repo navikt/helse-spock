@@ -1,9 +1,9 @@
-Spock [![Actions Status](https://github.com/navikt/helse-spock/workflows/master/badge.svg)](https://github.com/navikt/helse-spock/actions)
-=============
+# Spock
+[![Actions Status](https://github.com/navikt/helse-spock/workflows/master/badge.svg)](https://github.com/navikt/helse-spock/actions)
 
 Monitorerer sykepengeløsningene.
 
-# Henvendelser
+## Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.
 
