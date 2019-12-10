@@ -16,6 +16,7 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
+import org.apache.kafka.streams.kstream.KStream
 import java.io.File
 import java.time.Duration
 import java.util.*
@@ -53,10 +54,27 @@ fun Application.spockApplication(): KafkaStreams {
 
     builder.stream<String, String>(
             listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
-            .withOffsetResetPolicy(Topology.AutoOffsetReset.LATEST)
+            .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
-    }
+    }.mapValues { _, json ->
+        try {
+            TilstandsendringEvent.fromJson(json)
+        } catch (err: IllegalArgumentException) {
+            log.warn("kunne ikke lese melding som json: ${err.message}", err)
+            null
+        }
+    }.mapNotNull()
+            .groupBy { _, value -> TilstandsendringEvent.grupper(value) }
+            .reduce { champion, challenger ->
+                champion.nyeste(challenger)
+            }
+            .toStream()
+            .foreach { id, event ->
+                if (event.trengerPåminnelse()) {
+                    log.info("trenger å sende påminnelse for vedtaksperiode med id=$id")
+                }
+            }
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
@@ -70,6 +88,13 @@ fun Application.spockApplication(): KafkaStreams {
         }
     }
 }
+
+private fun <Key : Any, Value : Any> KStream<Key, Value?>.mapNotNull() =
+        filterNot { _, value ->
+            value != null
+        }.mapValues { _, value ->
+            value!!
+        }
 
 @KtorExperimentalAPI
 private fun Application.streamsConfig() = Properties().apply {
