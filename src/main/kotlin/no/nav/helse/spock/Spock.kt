@@ -16,7 +16,9 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
+import org.apache.kafka.streams.kstream.Grouped
 import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.kstream.Serialized
 import java.io.File
 import java.time.Duration
 import java.util.*
@@ -65,7 +67,7 @@ fun Application.spockApplication(): KafkaStreams {
             null
         }
     }.mapNotNull()
-            .groupBy { _, value -> TilstandsendringEvent.grupper(value) }
+            .groupBy({ _, value -> TilstandsendringEvent.grupper(value) }, Grouped.with(Serdes.String(), TilstandsendringEvent.Serde()))
             .reduce { champion, challenger ->
                 champion.nyeste(challenger)
             }
