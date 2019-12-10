@@ -17,7 +17,7 @@ internal class TilstandsendringEvent private constructor(private val aktørId: S
                                                          private val originalJson: String) {
 
     fun trengerPåminnelse() =
-            endringstidspunkt.plusSeconds(timeout).isAfter(LocalDateTime.now())
+            endringstidspunkt.plusSeconds(timeout).isBefore(LocalDateTime.now())
 
     fun nyeste(other: TilstandsendringEvent): TilstandsendringEvent {
         if (other.endringstidspunkt > this.endringstidspunkt) return other
