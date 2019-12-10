@@ -90,7 +90,7 @@ fun Application.spockApplication(): KafkaStreams {
 }
 
 private fun <Key : Any, Value : Any> KStream<Key, Value?>.mapNotNull() =
-        filterNot { _, value ->
+        filter { _, value ->
             value != null
         }.mapValues { _, value ->
             value!!
