@@ -30,9 +30,9 @@ internal class TilstandsendringEvent private constructor(private val aktørId: S
         fun fromJson(json: String): TilstandsendringEvent {
             return objectMapper.readTree(json).let { jsonNode ->
                 listOf("aktørId", "fødselsnummer", "organisasjonsnummer",
-                        "vedtaksperiodeId", "currentState", "previousState",
+                        "vedtaksperiodeId", "gjeldendeTilstand", "forrigeTilstand",
                         "endringstidspunkt", "timeout").forEach {
-                    require(jsonNode.hasNonNull(it))
+                    require(jsonNode.hasNonNull(it)) { "$it er påkrevd felt" }
                 }
 
                 TilstandsendringEvent(
@@ -40,8 +40,8 @@ internal class TilstandsendringEvent private constructor(private val aktørId: S
                         fødselsnummer = jsonNode["fødselsnummer"].textValue(),
                         organisasjonsnummer = jsonNode["organisasjonsnummer"].textValue(),
                         vedtaksperiodeId = jsonNode["vedtaksperiodeId"].textValue(),
-                        gjeldendeTilstand = jsonNode["currentState"].textValue(),
-                        forrigeTilstand = jsonNode["previousState"].textValue(),
+                        gjeldendeTilstand = jsonNode["gjeldendeTilstand"].textValue(),
+                        forrigeTilstand = jsonNode["forrigeTilstand"].textValue(),
                         endringstidspunkt = LocalDateTime.parse(jsonNode["endringstidspunkt"].textValue()),
                         timeout = jsonNode["timeout"].longValue()
                 )
