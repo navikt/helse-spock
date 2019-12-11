@@ -60,7 +60,7 @@ fun Application.spockApplication(): KafkaStreams {
             listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
             .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).peek { key, value ->
-        log.info("mottok melding key=$key value=$value")
+        log.debug("mottok melding key=$key value=$value")
     }.mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
             .mapNotNull()
             .flatMapValues { _, event ->
