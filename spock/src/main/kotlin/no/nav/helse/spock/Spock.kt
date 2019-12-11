@@ -17,11 +17,13 @@ import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.kstream.Produced
 import java.io.File
 import java.time.Duration
 import java.util.*
 
 private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
+private const val påminnelserTopic = "privat-helse-sykepenger-paminnelser"
 
 fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
         HikariConfig().apply {
@@ -52,15 +54,22 @@ fun Application.spockApplication(): KafkaStreams {
 
     val builder = StreamsBuilder()
 
+    val påminnelser = Påminnelser()
+
     builder.stream<String, String>(
             listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
             .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
     }.mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
-    .foreach { _, event ->
-        // TODO lag påminnelse fra event
-    }
+            .mapNotNull()
+            .flatMapValues { _, event ->
+                påminnelser.håndter(event)
+            }.mapValues { _, påminnelse ->
+                påminnelse.toJson()
+            }.peek { _, påminnelse ->
+                log.info("Produserer $påminnelse")
+            }.to(påminnelserTopic, Produced.with(Serdes.String(), Serdes.String()))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)

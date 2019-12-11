@@ -16,16 +16,25 @@ import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig.*
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.sql.Connection
+import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 
 internal class ComponentTest {
@@ -38,8 +47,10 @@ internal class ComponentTest {
         private const val username = "srvkafkaclient"
         private const val password = "kafkaclient"
         private const val kafkaApplicationId = "spock-v1"
+        private const val påminnelserTopic = "privat-helse-sykepenger-paminnelser"
+        private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
 
-        private val topics = listOf("vedtaksp")
+        private val topics = listOf(påminnelserTopic, vedtaksperiodeEndretEventTopic)
         // Use one partition per topic to make message sending more predictable
         private val topicInfos = topics.map { KafkaEnvironment.TopicInfo(it, partitions = 1) }
 
@@ -66,8 +77,9 @@ internal class ComponentTest {
             return mapOf(
                     "KAFKA_APP_ID" to kafkaApplicationId,
                     "KAFKA_BOOTSTRAP_SERVERS" to embeddedKafkaEnvironment.brokersURL,
-                    "KAFKA_USERNAME" to username,
-                    "KAFKA_PASSWORD" to password,
+                    "SERVICEUSER_USERNAME" to username,
+                    "SERVICEUSER_PASSWORD" to password,
+                    "DATABASE_JDBC_URL" to embeddedPostgres.getJdbcUrl("postgres", "postgres"),
                     "KAFKA_COMMIT_INTERVAL_MS_CONFIG" to "100"
             )
         }
@@ -108,7 +120,7 @@ internal class ComponentTest {
             kafkaProducer = KafkaProducer(producerProperties(), StringSerializer(), StringSerializer())
 
             embeddedServer = embeddedServer(Netty, createApplicationEnvironment(createConfigFromEnvironment(applicationConfig())))
-                            .start(wait = false)
+                    .start(wait = false)
         }
 
         @AfterAll
@@ -117,10 +129,54 @@ internal class ComponentTest {
             adminClient.close()
             embeddedKafkaEnvironment.tearDown()
         }
+    }
 
         @Test
         fun `sender påminnelse`() {
-            // TODO skriv test
+            val vedtaksPeriodeId = "1"
+            kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(vedtaksPeriodeId = vedtaksPeriodeId, tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60)))
+
+            await().atMost(30, TimeUnit.SECONDS).untilAsserted {
+                assertEquals(1,
+                        TestConsumer.records(påminnelserTopic)
+                        .map { objectMapper.readTree(it.value()) }
+                        .filter {it.hasNonNull("vedtaksperiodeId")}
+                        .filter {it["vedtaksperiodeId"].textValue() == vedtaksPeriodeId}.size)
+            }
+        }
+
+        private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = """
+{
+  "aktørId": "1234567890123",
+  "fødselsnummer": "01019000000",
+  "organisasjonsnummer": "123456789",
+  "vedtaksperiodeId": "$vedtaksPeriodeId",
+  "gjeldendeTilstand": "$tilstand",
+  "forrigeTilstand": "START",
+  "endringstidspunkt": "$endringstidspunkt",
+  "timeout": $timeout
+}"""
+
+    private object TestConsumer {
+        private val records = mutableListOf<ConsumerRecord<String, String>>()
+
+        private val kafkaConsumer =
+                KafkaConsumer(consumerProperties(), StringDeserializer(), StringDeserializer()).also {
+                    it.subscribe(topics)
+                }
+
+        fun reset() {
+            records.clear()
+        }
+
+        fun records(topic: String) = records().filter { it.topic() == topic }
+
+        fun records() =
+                records.also { it.addAll(kafkaConsumer.poll(Duration.ofMillis(0))) }
+
+        fun close() {
+            kafkaConsumer.unsubscribe()
+            kafkaConsumer.close()
         }
     }
 }
