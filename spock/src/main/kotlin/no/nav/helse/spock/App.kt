@@ -8,6 +8,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.spock.nais.nais
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.concurrent.TimeUnit
@@ -73,6 +74,8 @@ fun createApplicationEnvironment(appConfig: ApplicationConfig) = applicationEngi
     connector {
         port = appConfig.property("server.port").getString().toInt()
     }
+
+    log = LoggerFactory.getLogger("no.nav.helse.spock")
 
     module {
         val streams = spockApplication()

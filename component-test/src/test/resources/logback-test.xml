@@ -6,6 +6,14 @@
         </encoder>
     </appender>
 
+    <appender name="secureLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-5relative %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="no.nav.helse" level="DEBUG" />
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

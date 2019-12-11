@@ -131,21 +131,31 @@ internal class ComponentTest {
         }
     }
 
-        @Test
-        fun `sender påminnelse`() {
-            val vedtaksPeriodeId = "1"
-            kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(vedtaksPeriodeId = vedtaksPeriodeId, tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60)))
+    @Test
+    fun `sjekker at påminnelse blir sendt etter angitt timeout`() {
+        val vedtaksperiodeId = sendTilstandsendringEventMedPåminnelseInnen1Sekund()
 
-            await().atMost(30, TimeUnit.SECONDS).untilAsserted {
-                assertEquals(1,
-                        TestConsumer.records(påminnelserTopic)
-                        .map { objectMapper.readTree(it.value()) }
-                        .filter {it.hasNonNull("vedtaksperiodeId")}
-                        .filter {it["vedtaksperiodeId"].textValue() == vedtaksPeriodeId}.size)
-            }
+        // send flere meldinger for å sørge for litt trafikk
+        for (i in 1..10) sendTilstandsendringEvent(timeout = 3600)
+
+        await().atMost(30, TimeUnit.SECONDS).untilAsserted {
+            assertEquals(1,
+                    TestConsumer.records(påminnelserTopic)
+                            .map { objectMapper.readTree(it.value()) }
+                            .filter { it.hasNonNull("vedtaksperiodeId") }
+                            .filter { it["vedtaksperiodeId"].textValue() == vedtaksperiodeId }.size)
         }
+    }
 
-        private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = """
+    private fun sendTilstandsendringEventMedPåminnelseInnen1Sekund() = sendTilstandsendringEvent(1)
+
+    private fun sendTilstandsendringEvent(timeout: Long): String {
+        val vedtaksPeriodeId = UUID.randomUUID().toString()
+        kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(vedtaksPeriodeId = vedtaksPeriodeId, tilstand = "A", endringstidspunkt = LocalDateTime.now(), timeout = timeout)))
+        return vedtaksPeriodeId
+    }
+
+    private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = """
 {
   "aktørId": "1234567890123",
   "fødselsnummer": "01019000000",
