@@ -16,9 +16,7 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.Grouped
 import org.apache.kafka.streams.kstream.KStream
-import org.apache.kafka.streams.kstream.Serialized
 import java.io.File
 import java.time.Duration
 import java.util.*
@@ -59,24 +57,10 @@ fun Application.spockApplication(): KafkaStreams {
             .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).peek { key, value ->
         log.info("mottok melding key=$key value=$value")
-    }.mapValues { _, json ->
-        try {
-            TilstandsendringEvent.fromJson(json)
-        } catch (err: IllegalArgumentException) {
-            log.warn("kunne ikke lese melding som json: ${err.message}", err)
-            null
-        }
-    }.mapNotNull()
-            .groupBy({ _, value -> TilstandsendringEvent.grupper(value) }, Grouped.with(Serdes.String(), TilstandsendringEvent.Serde()))
-            .reduce { champion, challenger ->
-                champion.nyeste(challenger)
-            }
-            .toStream()
-            .foreach { id, event ->
-                if (event.trengerPåminnelse()) {
-                    log.info("trenger å sende påminnelse for vedtaksperiode med id=$id")
-                }
-            }
+    }.mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
+    .foreach { _, event ->
+        // TODO lag påminnelse fra event
+    }
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
