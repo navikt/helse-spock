@@ -1,6 +1,7 @@
 package no.nav.helse.spock
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
@@ -9,24 +10,39 @@ internal class PåminnelserTest {
     internal fun `håndter`() {
         val påminnelser = Påminnelser()
 
-        assertEquals(0, påminnelser.påminnelser().size)
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60).also {
+            assertEquals(1, påminnelser.håndter(it).size)
+        }
 
-        val event1 = tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60)
-        påminnelser.håndter(event1)
-        assertEquals(1, påminnelser.påminnelser().size)
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "B", endringstidspunkt = LocalDateTime.now(), timeout = 60).also {
+            assertTrue(påminnelser.håndter(it).isEmpty())
+        }
+    }
 
-        val event2 = tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "B", endringstidspunkt = LocalDateTime.now(), timeout = 60)
-        påminnelser.håndter(event2)
-        assertEquals(0, påminnelser.påminnelser().size)
+    @Test
+    internal fun `håndter ulike vedtaksperioder`() {
+        val påminnelser = Påminnelser()
+
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60).also {
+            assertEquals(1, påminnelser.håndter(it).size)
+        }
+
+        tilstandsEndringsEvent(vedtaksPeriodeId = "2", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60).also {
+            assertEquals(1, påminnelser.håndter(it).size)
+        }
+
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "B", endringstidspunkt = LocalDateTime.now(), timeout = 60).also {
+            assertTrue(påminnelser.håndter(it).isEmpty())
+        }
     }
 
     @Test
     internal fun `håndter timeout 0`() {
         val påminnelser = Påminnelser()
 
-        val event1 = tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 0)
-        påminnelser.håndter(event1)
-        assertEquals(0, påminnelser.påminnelser().size)
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 0).also {
+            assertTrue(påminnelser.håndter(it).isEmpty())
+        }
     }
 
     @Test
@@ -34,13 +50,12 @@ internal class PåminnelserTest {
         val påminnelser = Påminnelser()
 
         tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "B", endringstidspunkt = LocalDateTime.now().minusMinutes(2), timeout = 60).also {
-            påminnelser.håndter(it)
+            assertEquals(1, påminnelser.håndter(it).size)
         }
 
-        val event1 = tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 0)
-        påminnelser.håndter(event1)
-
-        assertEquals(1, påminnelser.påminnelser().size)
+        tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 0).also {
+            assertTrue(påminnelser.håndter(it).isEmpty())
+        }
     }
 
     private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = requireNotNull(TilstandsendringEvent.fraJson("""

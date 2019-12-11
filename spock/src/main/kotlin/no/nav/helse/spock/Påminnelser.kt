@@ -6,10 +6,6 @@ internal class Påminnelser {
 
     fun håndter(event: TilstandsendringEvent): List<TilstandsendringEvent> {
         events.håndter(event)
-        return påminnelser()
-    }
-
-    internal fun påminnelser(): List<TilstandsendringEvent> {
         return events.påminnelser()
     }
 
