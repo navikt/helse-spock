@@ -16,13 +16,14 @@ internal class TilstandsendringEvent(private val aktørId: String,
                                      private val tilstand: String,
                                      private val timeout: Long,
                                      private val tidspunkt: LocalDateTime) {
-    private val påminnelsestidspunkt = tidspunkt.plusSeconds(timeout)
+    private var påminnelsestidspunkt = tidspunkt.plusSeconds(timeout)
     private var antallGangerPåminnet = 0
 
     fun addWhenDue(påminnelser: MutableList<TilstandsendringEvent>): Boolean {
         if (LocalDateTime.now() < this.påminnelsestidspunkt) return false
         påminnelser.add(this)
         antallGangerPåminnet++
+        påminnelsestidspunkt = LocalDateTime.now().plusSeconds(timeout)
         return true
     }
 

@@ -68,6 +68,21 @@ internal class TilstandsendringEventTest {
         assertJson(påminnelser[0], "antallGangerPåminnet", 1)
     }
 
+    @Test
+    internal fun `reset av påminnelsetidspunkt`() {
+        val event = tilstandsEndringsEvent(vedtaksPeriodeId = "1", tilstand = "A", endringstidspunkt = LocalDateTime.now().minusHours(1), timeout = 60)
+
+        mutableListOf<TilstandsendringEvent>().also {
+            assertTrue(event.addWhenDue(it))
+            assertTrue(it.isNotEmpty())
+        }
+
+        mutableListOf<TilstandsendringEvent>().also {
+            assertFalse(event.addWhenDue(it))
+            assertTrue(it.isEmpty())
+        }
+    }
+
     private fun assertJson(event: TilstandsendringEvent, key: String, expected: Int) {
         event.toJson().let {
             ObjectMapper().readTree(it)
