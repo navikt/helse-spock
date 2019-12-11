@@ -51,6 +51,9 @@ internal class TilstandsendringEventTest {
         assertEquals("1", jsonNode["vedtaksperiodeId"].textValue())
         assertEquals("A", jsonNode["tilstand"].textValue())
         assertEquals(0, jsonNode["antallGangerPåminnet"].intValue())
+        assertDoesNotThrow {
+            LocalDateTime.parse(jsonNode["påminnelsestidspunkt"].textValue())
+        }
     }
 
     @Test

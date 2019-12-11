@@ -26,7 +26,6 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -34,7 +33,7 @@ import java.sql.Connection
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.collections.HashMap
 
 internal class ComponentTest {
@@ -133,26 +132,71 @@ internal class ComponentTest {
 
     @Test
     fun `sjekker at påminnelse blir sendt etter angitt timeout`() {
-        val vedtaksperiodeId = sendTilstandsendringEventMedPåminnelseInnen1Sekund()
+        val timeout = 1L
+        var tilstand = "A"
+        var forventetPåminnetEtter = LocalDateTime.now().plusSeconds(timeout)
+        val vedtaksperiodeId = sendTilstandsendringEvent(
+                timeout = timeout,
+                tilstand = tilstand
+        )
 
-        // send flere meldinger for å sørge for litt trafikk
-        for (i in 1..10) sendTilstandsendringEvent(timeout = 3600)
+        var påminnelsenummer = 1
+        forventetPåminnetEtter = ventPåMottattPåminnelse(vedtaksperiodeId, forventetPåminnetEtter, tilstand, påminnelsenummer)
 
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted {
-            assertEquals(1,
-                    TestConsumer.records(påminnelserTopic)
-                            .map { objectMapper.readTree(it.value()) }
-                            .filter { it.hasNonNull("vedtaksperiodeId") }
-                            .filter { it["vedtaksperiodeId"].textValue() == vedtaksperiodeId }.size)
-        }
+        påminnelsenummer = 2
+        forventetPåminnetEtter = ventPåMottattPåminnelse(vedtaksperiodeId, forventetPåminnetEtter, tilstand, påminnelsenummer)
+
+        tilstand = "B"
+        sendTilstandsendringEvent(
+                vedtaksperiodeId = vedtaksperiodeId,
+                tilstand = tilstand,
+                timeout = timeout
+        )
+
+        påminnelsenummer = 1
+        ventPåMottattPåminnelse(vedtaksperiodeId, forventetPåminnetEtter, tilstand, påminnelsenummer)
+
     }
 
-    private fun sendTilstandsendringEventMedPåminnelseInnen1Sekund() = sendTilstandsendringEvent(1)
+    private fun ventPåMottattPåminnelse(vedtaksperiodeId: String, påminnelsetidspunkt: LocalDateTime, tilstand: String, påminnelsenummer: Int): LocalDateTime {
+        return await("vent på påminnelse=$påminnelsenummer sendt etter=$påminnelsetidspunkt for vedtaksperiode=$vedtaksperiodeId i tilstand=$tilstand")
+                .atMost(10, SECONDS)
+                .until (mottattPåminnelse(vedtaksperiodeId, tilstand, påminnelsenummer)) {
+                    it >= påminnelsetidspunkt
+                }
+    }
 
-    private fun sendTilstandsendringEvent(timeout: Long): String {
-        val vedtaksPeriodeId = UUID.randomUUID().toString()
-        kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(vedtaksPeriodeId = vedtaksPeriodeId, tilstand = "A", endringstidspunkt = LocalDateTime.now(), timeout = timeout)))
-        return vedtaksPeriodeId
+    private fun mottattPåminnelse(vedtaksperiodeId: String, tilstand: String, påminnelsenummer: Int): () -> LocalDateTime = {
+        // send flere meldinger for å sørge for litt trafikk
+        sendTilstandsendringEvent(timeout = 3600)
+
+        TestConsumer.records(påminnelserTopic)
+                .map { it.value() }
+                .also { println("read $it") }
+                .map { objectMapper.readTree(it) }
+                .filter { it.hasNonNull("vedtaksperiodeId") }
+                .filter { it.hasNonNull("tilstand") }
+                .filter { it.hasNonNull("antallGangerPåminnet") }
+                .filter { it.hasNonNull("påminnelsestidspunkt") }
+                .filter { it["vedtaksperiodeId"].textValue() == vedtaksperiodeId }
+                .filter { it["tilstand"].textValue() == tilstand }
+                .firstOrNull { it["antallGangerPåminnet"].intValue() == påminnelsenummer }
+                ?.let { LocalDateTime.parse(it["påminnelsestidspunkt"].textValue()) } ?: LocalDateTime.MIN
+    }
+
+    private fun sendTilstandsendringEvent(
+            vedtaksperiodeId: String = UUID.randomUUID().toString(),
+            tilstand: String = UUID.randomUUID().toString(),
+            endringstidspunkt: LocalDateTime = LocalDateTime.now(),
+            timeout: Long
+    ): String {
+        kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(
+                vedtaksPeriodeId = vedtaksperiodeId,
+                tilstand = tilstand,
+                endringstidspunkt = endringstidspunkt,
+                timeout = timeout
+        ).also { println("sender $it")})).get()
+        return vedtaksperiodeId
     }
 
     private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = """

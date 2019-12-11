@@ -41,7 +41,8 @@ internal class TilstandsendringEvent(private val aktørId: String,
                     "organisasjonsnummer" to organisasjonsnummer,
                     "vedtaksperiodeId" to vedtaksperiodeId,
                     "tilstand" to tilstand,
-                    "antallGangerPåminnet" to antallGangerPåminnet
+                    "antallGangerPåminnet" to antallGangerPåminnet,
+                    "påminnelsestidspunkt" to LocalDateTime.now()
             )
     )
 
