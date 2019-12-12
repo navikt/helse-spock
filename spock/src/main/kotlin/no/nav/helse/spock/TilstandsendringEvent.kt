@@ -15,36 +15,46 @@ internal class TilstandsendringEvent(private val aktørId: String,
                                      private val vedtaksperiodeId: String,
                                      private val tilstand: String,
                                      private val timeout: Long,
-                                     private val tidspunkt: LocalDateTime) {
-    private var påminnelsestidspunkt = tidspunkt.plusSeconds(timeout)
-    private var antallGangerPåminnet = 0
+                                     private val endringstidspunkt: LocalDateTime) {
 
-    fun addWhenDue(påminnelser: MutableList<TilstandsendringEvent>): Boolean {
-        if (LocalDateTime.now() < this.påminnelsestidspunkt) return false
-        påminnelser.add(this)
-        antallGangerPåminnet++
-        påminnelsestidspunkt = LocalDateTime.now().plusSeconds(timeout)
-        return true
+    private val påminnelse = Påminnelse()
+
+    fun addWhenDue(påminnelser: MutableList<Påminnelse>): Boolean {
+        return påminnelse.addWhenDue(påminnelser)
     }
 
     fun nyeste(other: TilstandsendringEvent?): TilstandsendringEvent {
         if (other == null) return this
         require(this.vedtaksperiodeId == other.vedtaksperiodeId) { "Vedtaksperiode må være lik" }
-        if (this.tidspunkt < other.tidspunkt) return other
+        if (this.endringstidspunkt < other.endringstidspunkt) return other
         return this
     }
 
-    internal fun toJson() = objectMapper.writeValueAsString(
-            mapOf(
-                    "aktørId" to aktørId,
-                    "fødselsnummer" to fødselsnummer,
-                    "organisasjonsnummer" to organisasjonsnummer,
-                    "vedtaksperiodeId" to vedtaksperiodeId,
-                    "tilstand" to tilstand,
-                    "antallGangerPåminnet" to antallGangerPåminnet,
-                    "påminnelsestidspunkt" to LocalDateTime.now()
-            )
-    )
+    internal inner class Påminnelse {
+        private var nestePåminnelsestidspunkt = endringstidspunkt.plusSeconds(timeout)
+        private var antallGangerPåminnet = 0
+
+        internal fun addWhenDue(påminnelser: MutableList<Påminnelse>): Boolean {
+            if (LocalDateTime.now() < this.nestePåminnelsestidspunkt) return false
+            påminnelser.add(this)
+            antallGangerPåminnet++
+            nestePåminnelsestidspunkt = LocalDateTime.now().plusSeconds(timeout)
+            return true
+        }
+
+        internal fun toJson() = objectMapper.writeValueAsString(
+                mapOf(
+                        "aktørId" to aktørId,
+                        "fødselsnummer" to fødselsnummer,
+                        "organisasjonsnummer" to organisasjonsnummer,
+                        "vedtaksperiodeId" to vedtaksperiodeId,
+                        "tilstand" to tilstand,
+                        "tilstandsendringstidspunkt" to endringstidspunkt,
+                        "antallGangerPåminnet" to antallGangerPåminnet,
+                        "påminnelsestidspunkt" to LocalDateTime.now(),
+                        "nestePåminnelsestidspunkt" to nestePåminnelsestidspunkt
+                ))
+    }
 
     companion object {
 
@@ -73,7 +83,7 @@ internal class TilstandsendringEvent(private val aktørId: String,
                             vedtaksperiodeId = jsonNode.requiredString("vedtaksperiodeId"),
                             tilstand = jsonNode.requiredString("gjeldendeTilstand"),
                             timeout = timeout,
-                            tidspunkt = LocalDateTime.parse(jsonNode.requiredString("endringstidspunkt"))
+                            endringstidspunkt = LocalDateTime.parse(jsonNode.requiredString("endringstidspunkt"))
                     )
                 }
             } catch (err: IllegalArgumentException) {
