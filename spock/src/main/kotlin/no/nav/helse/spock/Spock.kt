@@ -18,35 +18,38 @@ import org.apache.kafka.streams.errors.LogAndFailExceptionHandler
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Produced
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
-import java.util.*
+import java.util.Properties
 
 private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
 private const val påminnelserTopic = "privat-helse-sykepenger-paminnelser"
 
 fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
-        HikariConfig().apply {
-            this.jdbcUrl = jdbcUrl
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-            username?.let { this.username = it }
-            password?.let { this.password = it }
-        }
+    HikariConfig().apply {
+        this.jdbcUrl = jdbcUrl
+        maximumPoolSize = 3
+        minimumIdle = 1
+        idleTimeout = 10001
+        connectionTimeout = 1000
+        maxLifetime = 30001
+        username?.let { this.username = it }
+        password?.let { this.password = it }
+    }
 
 @KtorExperimentalAPI
 fun Application.createHikariConfigFromEnvironment() =
-        createHikariConfig(
-                jdbcUrl = environment.config.property("database.jdbc-url").getString(),
-                username = environment.config.propertyOrNull("database.username")?.getString(),
-                password = environment.config.propertyOrNull("database.password")?.getString()
-        )
+    createHikariConfig(
+        jdbcUrl = environment.config.property("database.jdbc-url").getString(),
+        username = environment.config.propertyOrNull("database.username")?.getString(),
+        password = environment.config.propertyOrNull("database.password")?.getString()
+    )
 
 @KtorExperimentalAPI
 fun Application.spockApplication(): KafkaStreams {
+
+    val secureLogger = LoggerFactory.getLogger("tjenestekall")
 
     migrate(createHikariConfigFromEnvironment())
 
@@ -57,19 +60,20 @@ fun Application.spockApplication(): KafkaStreams {
     val påminnelser = Påminnelser()
 
     builder.stream<String, String>(
-            listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
+        listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
             .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
-    ).peek { key, value ->
-        log.debug("mottok melding key=$key value=$value")
-    }.mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
-            .mapNotNull()
-            .flatMapValues { _, event ->
-                påminnelser.håndter(event)
-            }.mapValues { _, påminnelse ->
-                påminnelse.toJson()
-            }.peek { _, påminnelse ->
-                log.info("Produserer $påminnelse")
-            }.to(påminnelserTopic, Produced.with(Serdes.String(), Serdes.String()))
+    ).mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
+        .mapNotNull()
+        .flatMapValues { _, event ->
+            påminnelser.håndter(event)
+        }.peek { _, påminnelse ->
+            log.info("Produserer påminnelse: ${påminnelse.infoLogg()}")
+        }
+        .mapValues { _, påminnelse ->
+            påminnelse.toJson()
+        }.peek { _, påminnelse ->
+            secureLogger.info("Produserer $påminnelse")
+        }.to(påminnelserTopic, Produced.with(Serdes.String(), Serdes.String()))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
@@ -85,11 +89,11 @@ fun Application.spockApplication(): KafkaStreams {
 }
 
 private fun <Key : Any, Value : Any> KStream<Key, Value?>.mapNotNull() =
-        filter { _, value ->
-            value != null
-        }.mapValues { _, value ->
-            value!!
-        }
+    filter { _, value ->
+        value != null
+    }.mapValues { _, value ->
+        value!!
+    }
 
 @KtorExperimentalAPI
 private fun Application.streamsConfig() = Properties().apply {
@@ -104,8 +108,8 @@ private fun Application.streamsConfig() = Properties().apply {
     environment.config.propertyOrNull("serviceuser.username")?.getString()?.let { username ->
         environment.config.propertyOrNull("serviceuser.password")?.getString()?.let { password ->
             put(
-                    SaslConfigs.SASL_JAAS_CONFIG,
-                    "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";"
+                SaslConfigs.SASL_JAAS_CONFIG,
+                "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";"
             )
         }
     }

@@ -54,6 +54,8 @@ internal class TilstandsendringEvent(private val aktørId: String,
                         "påminnelsestidspunkt" to LocalDateTime.now(),
                         "nestePåminnelsestidspunkt" to nestePåminnelsestidspunkt
                 ))
+
+        internal fun infoLogg() = "tilstand: $tilstand, vedtaksperiodeId: $vedtaksperiodeId"
     }
 
     companion object {
