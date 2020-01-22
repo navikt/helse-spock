@@ -200,6 +200,7 @@ internal class ComponentTest {
 
     private fun tilstandsEndringsEvent(vedtaksPeriodeId: String, tilstand: String, endringstidspunkt: LocalDateTime, timeout: Long) = """
 {
+  "@event_name": "vedtaksperiode_endret",
   "aktørId": "1234567890123",
   "fødselsnummer": "01019000000",
   "organisasjonsnummer": "123456789",
