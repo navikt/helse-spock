@@ -46,10 +46,9 @@ internal class ComponentTest {
         private const val username = "srvkafkaclient"
         private const val password = "kafkaclient"
         private const val kafkaApplicationId = "spock-v1"
-        private const val påminnelserTopic = "privat-helse-sykepenger-paminnelser"
-        private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
+        private const val rapidTopic = "privat-helse-sykepenger-rapid-v1"
 
-        private val topics = listOf(påminnelserTopic, vedtaksperiodeEndretEventTopic)
+        private val topics = listOf(rapidTopic)
         // Use one partition per topic to make message sending more predictable
         private val topicInfos = topics.map { KafkaEnvironment.TopicInfo(it, partitions = 1) }
 
@@ -170,7 +169,7 @@ internal class ComponentTest {
         // send flere meldinger for å sørge for litt trafikk
         sendTilstandsendringEvent(timeout = 3600)
 
-        TestConsumer.records(påminnelserTopic)
+        TestConsumer.records(rapidTopic)
                 .map { it.value() }
                 .also { println("read $it") }
                 .map { objectMapper.readTree(it) }
@@ -190,7 +189,7 @@ internal class ComponentTest {
             endringstidspunkt: LocalDateTime = LocalDateTime.now(),
             timeout: Long
     ): String {
-        kafkaProducer.send(ProducerRecord(vedtaksperiodeEndretEventTopic, tilstandsEndringsEvent(
+        kafkaProducer.send(ProducerRecord(rapidTopic, tilstandsEndringsEvent(
                 vedtaksPeriodeId = vedtaksperiodeId,
                 tilstand = tilstand,
                 endringstidspunkt = endringstidspunkt,

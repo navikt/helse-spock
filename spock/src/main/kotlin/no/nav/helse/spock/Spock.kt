@@ -21,10 +21,9 @@ import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
-import java.util.Properties
+import java.util.*
 
-private const val vedtaksperiodeEndretEventTopic = "privat-helse-sykepenger-vedtaksperiode-endret"
-private const val påminnelserTopic = "privat-helse-sykepenger-paminnelser"
+private const val rapidTopic = "privat-helse-sykepenger-rapid-v1"
 
 fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
     HikariConfig().apply {
@@ -60,7 +59,7 @@ fun Application.spockApplication(): KafkaStreams {
     val påminnelser = Påminnelser()
 
     builder.stream<String, String>(
-        listOf(vedtaksperiodeEndretEventTopic), Consumed.with(Serdes.String(), Serdes.String())
+        listOf(rapidTopic), Consumed.with(Serdes.String(), Serdes.String())
             .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
     ).mapValues { _, json -> TilstandsendringEvent.fraJson(json) }
         .mapNotNull()
@@ -73,7 +72,7 @@ fun Application.spockApplication(): KafkaStreams {
             påminnelse.toJson()
         }.peek { _, påminnelse ->
             secureLogger.info("Produserer $påminnelse")
-        }.to(påminnelserTopic, Produced.with(Serdes.String(), Serdes.String()))
+        }.to(rapidTopic, Produced.with(Serdes.String(), Serdes.String()))
 
     return KafkaStreams(builder.build(), streamsConfig()).apply {
         addShutdownHook(this)
