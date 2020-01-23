@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -92,8 +93,9 @@ internal class TilstandsendringEvent(private val aktørId: String,
                             endringstidspunkt = LocalDateTime.parse(jsonNode.requiredString("endringstidspunkt"))
                     )
                 }
+            } catch (err: JsonProcessingException) {
+                null
             } catch (err: IllegalArgumentException) {
-                println("kan ikke lese fra json pga.: ${err.message}")
                 null
             }
         }
