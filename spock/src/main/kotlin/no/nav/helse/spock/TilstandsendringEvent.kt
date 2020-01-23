@@ -78,7 +78,9 @@ internal class TilstandsendringEvent(private val aktørId: String,
         fun fraJson(event: String): TilstandsendringEvent? {
             return try {
                 objectMapper.readTree(event).let { jsonNode ->
-                    require(jsonNode["@event_name"]?.asText() == "vedtaksperiode_endret")
+                    jsonNode["@event_name"]?.asText()?.also {
+                        require(it == "vedtaksperiode_endret")
+                    }
                     val timeout = jsonNode.requiredLong("timeout")
                     TilstandsendringEvent(
                             aktørId = jsonNode.requiredString("aktørId"),
