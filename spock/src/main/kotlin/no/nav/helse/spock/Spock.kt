@@ -52,15 +52,32 @@ fun Application.createHikariConfigFromEnvironment() =
 
 fun lagreTilstandsendring(dataSource: DataSource, event: TilstandsendringEventDto) {
     using(sessionOf(dataSource)) { session ->
-        session.run(
-            queryOf(
-                "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json)))",
-                event.aktørId, event.fødselsnummer, event.organisasjonsnummer, event.vedtaksperiodeId, event.tilstand,
-                event.timeout, event.endringstidspunkt,
-                event.endringstidspunkt.plusSeconds(event.timeout), event.originalJson
-            ).asExecute
-        )
+        session.transaction {
+            session.run(
+                queryOf(
+                    "DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
+                    event.vedtaksperiodeId
+                ).asExecute
+            )
+
+            if (event.timeout <= 0) return@transaction
+
+            session.run(
+                queryOf(
+                    "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json)))",
+                    event.aktørId,
+                    event.fødselsnummer,
+                    event.organisasjonsnummer,
+                    event.vedtaksperiodeId,
+                    event.tilstand,
+                    event.timeout,
+                    event.endringstidspunkt,
+                    event.endringstidspunkt.plusSeconds(event.timeout),
+                    event.originalJson
+                ).asExecute
+            )
+        }
     }
 }
 
@@ -70,7 +87,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
             queryOf(
                 "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
                         "FROM paminnelse " +
-                        "WHERE neste_paminnelsetidspunkt <= now() " +
+                        "WHERE timeout > 0 AND neste_paminnelsetidspunkt <= now() " +
                         "AND id IN (SELECT DISTINCT ON (vedtaksperiode_id) id FROM paminnelse ORDER BY vedtaksperiode_id, endringstidspunkt DESC, opprettet DESC)"
             ).map {
                 PåminnelseDto(
@@ -83,7 +100,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
                     timeout = it.long("timeout"),
                     endringstidspunkt = it.localDateTime("endringstidspunkt"),
                     nestePåminnelsestidspunkt = it.localDateTime("neste_paminnelsetidspunkt"),
-                    antallGangerPåminnet = it.int("antall_ganger_paminnet")
+                    antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
                 )
             }.asList
         )

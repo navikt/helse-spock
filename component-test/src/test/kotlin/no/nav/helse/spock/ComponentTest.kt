@@ -169,7 +169,7 @@ internal class ComponentTest {
                 lagreTilstandsendring(ds, it)
             }
 
-            assertEquals(2, using(sessionOf(ds)) {
+            assertEquals(1, using(sessionOf(ds)) {
                 it.run(queryOf("SELECT COUNT(1) FROM paminnelse").map {
                     it.int(1)
                 }.asSingle)
@@ -178,6 +178,25 @@ internal class ComponentTest {
             hentPåminnelser(ds).also {
                 assertEquals(0, it.size) { "$it" }
             }
+
+            requireNotNull(
+                TilstandsendringEventDto.fraJson(
+                    tilstandsEndringsEvent(
+                        vedtaksperiodeId.toString(),
+                        "NY_SØKNAD_MOTTATT",
+                        LocalDateTime.now(),
+                        0
+                    )
+                )
+            ).also {
+                lagreTilstandsendring(ds, it)
+            }
+
+            assertEquals(0, using(sessionOf(ds)) {
+                it.run(queryOf("SELECT COUNT(1) FROM paminnelse").map {
+                    it.int(1)
+                }.asSingle)
+            })
         }
     }
 
