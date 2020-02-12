@@ -10,6 +10,9 @@ import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import no.nav.common.KafkaEnvironment
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
@@ -26,6 +29,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -126,6 +130,54 @@ internal class ComponentTest {
         internal fun `stop embedded environment`() {
             adminClient.close()
             embeddedKafkaEnvironment.tearDown()
+        }
+    }
+
+    @Test
+    fun `databasespørringer`() {
+        val ds = HikariDataSource(hikariConfig)
+
+        UUID.randomUUID().also { vedtaksperiodeId ->
+            requireNotNull(
+                TilstandsendringEventDto.fraJson(
+                    tilstandsEndringsEvent(
+                        vedtaksperiodeId.toString(),
+                        "START",
+                        LocalDateTime.now().minusHours(2),
+                        3600
+                    )
+                )
+            ).also {
+                lagreTilstandsendring(ds, it)
+            }
+
+            hentPåminnelser(ds).also {
+                assertEquals(1, it.size)
+                oppdaterPåminnelse(ds, it[0])
+            }
+
+            requireNotNull(
+                TilstandsendringEventDto.fraJson(
+                    tilstandsEndringsEvent(
+                        vedtaksperiodeId.toString(),
+                        "NY_SØKNAD_MOTTATT",
+                        LocalDateTime.now(),
+                        3600
+                    )
+                )
+            ).also {
+                lagreTilstandsendring(ds, it)
+            }
+
+            assertEquals(2, using(sessionOf(ds)) {
+                it.run(queryOf("SELECT COUNT(1) FROM paminnelse").map {
+                    it.int(1)
+                }.asSingle)
+            })
+
+            hentPåminnelser(ds).also {
+                assertEquals(0, it.size) { "$it" }
+            }
         }
     }
 

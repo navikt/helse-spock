@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.2.4"
 val jacksonVersion = "2.9.8"
@@ -31,8 +29,6 @@ dependencies {
 }
 
 repositories {
-    //jcenter()
-    //mavenCentral()
     maven("https://dl.bintray.com/kotlin/ktor")
 }
 

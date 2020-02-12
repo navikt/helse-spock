@@ -11,22 +11,14 @@ import no.nav.helse.spock.nais.nais
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
-
-// create a unique app id on every startup, so the stream will have no previous committed offsets
-private fun createUniqueKafkaAppId(appId: String): String {
-    val format = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
-    return "$appId-${LocalDateTime.now().format(format)}"
-}
 
 @KtorExperimentalAPI
 fun createConfigFromEnvironment(env: Map<String, String>) =
         MapApplicationConfig().apply {
             put("server.port", env.getOrDefault("HTTP_PORT", "8080"))
 
-            put("kafka.app-id", createUniqueKafkaAppId("spock-v1"))
+            put("kafka.app-id", "spock-v1")
 
             env["KAFKA_BOOTSTRAP_SERVERS"]?.let { put("kafka.bootstrap-servers", it) }
 
