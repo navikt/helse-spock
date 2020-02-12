@@ -13,8 +13,10 @@ class PåminnelseDto(val id: String,
                     val tilstand: String,
                     val timeout: Long,
                     val endringstidspunkt: LocalDateTime,
-                    val nestePåminnelsestidspunkt: LocalDateTime,
                     val antallGangerPåminnet: Int) {
+
+    val påminnelsestidspunkt = LocalDateTime.now()
+    val nestePåminnelsestidspunkt = påminnelsestidspunkt.plusSeconds(timeout)
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -32,7 +34,7 @@ class PåminnelseDto(val id: String,
             "tilstand" to tilstand,
             "tilstandsendringstidspunkt" to endringstidspunkt,
             "antallGangerPåminnet" to antallGangerPåminnet,
-            "påminnelsestidspunkt" to LocalDateTime.now(),
+            "påminnelsestidspunkt" to påminnelsestidspunkt,
             "nestePåminnelsestidspunkt" to nestePåminnelsestidspunkt
         ))
 

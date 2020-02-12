@@ -99,7 +99,6 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
                     tilstand = it.string("tilstand"),
                     timeout = it.long("timeout"),
                     endringstidspunkt = it.localDateTime("endringstidspunkt"),
-                    nestePåminnelsestidspunkt = it.localDateTime("neste_paminnelsetidspunkt"),
                     antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
                 )
             }.asList
