@@ -6,6 +6,7 @@ import io.ktor.application.ApplicationStarted
 import io.ktor.application.ApplicationStopping
 import io.ktor.application.log
 import io.ktor.util.KtorExperimentalAPI
+import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -55,15 +56,6 @@ fun lagreTilstandsendring(dataSource: DataSource, event: TilstandsendringEventDt
         session.transaction {
             session.run(
                 queryOf(
-                    "DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
-                    event.vedtaksperiodeId
-                ).asExecute
-            )
-
-            if (event.timeout <= 0) return@transaction
-
-            session.run(
-                queryOf(
                     "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json)))",
                     event.aktørId,
@@ -77,8 +69,33 @@ fun lagreTilstandsendring(dataSource: DataSource, event: TilstandsendringEventDt
                     event.originalJson
                 ).asExecute
             )
+
+            hentGjeldendeTilstand(session, event.vedtaksperiodeId)?.also { nyesteEndringsevent ->
+                if (nyesteEndringsevent.timeout <= 0) {
+                    session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
+                        event.vedtaksperiodeId).asExecute)
+                } else {
+                    session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=? AND id != ?::bigint",
+                        event.vedtaksperiodeId, nyesteEndringsevent.id).asExecute)
+                }
+            }
         }
     }
+}
+
+private class GjeldeneTilstand(val id: String, val timeout: Long)
+private fun hentGjeldendeTilstand(session: Session, vedtaksperiodeId: String): GjeldeneTilstand? {
+    return session.run(
+        queryOf("SELECT id, timeout FROM paminnelse " +
+                "WHERE vedtaksperiode_id = ? " +
+                "ORDER BY endringstidspunkt DESC, opprettet DESC " +
+                "LIMIT 1", vedtaksperiodeId).map {
+            GjeldeneTilstand(
+                id = it.string(1),
+                timeout = it.long(2)
+            )
+        }.asSingle
+    )
 }
 
 fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
