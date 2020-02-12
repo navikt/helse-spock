@@ -46,7 +46,7 @@ internal class ComponentTest {
         private const val username = "srvkafkaclient"
         private const val password = "kafkaclient"
         private const val kafkaApplicationId = "spock-v1"
-        private const val rapidTopic = "privat-helse-sykepenger-rapid-v1"
+        private const val rapidTopic = "helse-rapid-v1"
 
         private val topics = listOf(rapidTopic)
         // Use one partition per topic to make message sending more predictable

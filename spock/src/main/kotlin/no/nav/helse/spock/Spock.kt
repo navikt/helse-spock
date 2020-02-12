@@ -23,7 +23,7 @@ import java.io.File
 import java.time.Duration
 import java.util.*
 
-private const val rapidTopic = "privat-helse-sykepenger-rapid-v1"
+private const val rapidTopic = "helse-rapid-v1"
 
 fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
     HikariConfig().apply {
