@@ -1,0 +1,2 @@
+UPDATE paminnelse SET tilstand='MOTTATT_SYKMELDING' WHERE tilstand='MOTTATT_NY_SØKNAD';
+UPDATE paminnelse SET tilstand='AVVENTER_SØKNAD' WHERE tilstand='AVVENTER_SENDT_SØKNAD';
