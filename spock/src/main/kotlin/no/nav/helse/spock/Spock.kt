@@ -53,8 +53,8 @@ fun Application.createHikariConfigFromEnvironment() =
 
 fun lagreTilstandsendring(dataSource: DataSource, event: TilstandsendringEventDto) {
     using(sessionOf(dataSource)) { session ->
-        session.transaction {
-            session.run(
+        session.transaction { tx ->
+            tx.run(
                 queryOf(
                     "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json)))",
@@ -70,12 +70,12 @@ fun lagreTilstandsendring(dataSource: DataSource, event: TilstandsendringEventDt
                 ).asExecute
             )
 
-            hentGjeldendeTilstand(session, event.vedtaksperiodeId)?.also { nyesteEndringsevent ->
+            hentGjeldendeTilstand(tx, event.vedtaksperiodeId)?.also { nyesteEndringsevent ->
                 if (nyesteEndringsevent.timeout <= 0) {
-                    session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
+                    tx.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
                         event.vedtaksperiodeId).asExecute)
                 } else {
-                    session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=? AND id != ?::bigint",
+                    tx.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=? AND id != ?::bigint",
                         event.vedtaksperiodeId, nyesteEndringsevent.id).asExecute)
                 }
             }
@@ -147,12 +147,12 @@ fun Application.spockApplication(): KafkaStreams {
 
     builder.stream<String, String>(
         listOf(rapidTopic), Consumed.with(Serdes.String(), Serdes.String())
-            .withOffsetResetPolicy(Topology.AutoOffsetReset.EARLIEST)
+            .withOffsetResetPolicy(Topology.AutoOffsetReset.LATEST)
     ).mapValues { _, json ->
         TilstandsendringEventDto.fraJson(json)
     }.mapNotNull()
         .peek { _, event -> lagreTilstandsendring(dataSource, event) }
-        .flatMapValues { _, _ -> hentPåminnelser(dataSource) }
+        .flatMapValues { _, _ -> hentPåminnelser(dataSource).also { if (it.isNotEmpty()) secureLogger.info("hentet ${it.size} påminnelser fra db") } }
         .peek { _, påminnelse -> oppdaterPåminnelse(dataSource, påminnelse) }
         .mapValues { _, påminnelse -> påminnelse.toJson() }
         .peek { _, påminnelse -> secureLogger.info("Produserer $påminnelse") }
@@ -182,7 +182,7 @@ private fun <Key : Any, Value : Any> KStream<Key, Value?>.mapNotNull() =
 private fun Application.streamsConfig() = Properties().apply {
     put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, environment.config.property("kafka.bootstrap-servers").getString())
     put(StreamsConfig.APPLICATION_ID_CONFIG, environment.config.property("kafka.app-id").getString())
-    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest")
 
     put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndFailExceptionHandler::class.java)
 
