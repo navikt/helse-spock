@@ -202,6 +202,14 @@ internal class ComponentTest {
 
     @Test
     fun `sjekker at påminnelse blir sendt etter angitt timeout`() {
+        val ds = HikariDataSource(hikariConfig)
+        await("venter på at spock har konsumert én melding")
+            .atMost(10, SECONDS)
+            .until {
+                sendTilstandsendringEvent(timeout = 3600)
+                1 <= (using(sessionOf(ds)) { it.run(queryOf("SELECT COUNT(1) FROM paminnelse").map { it.int(1) }.asSingle) } ?: 0)
+            }
+
         val timeout = 1L
         var tilstand = "A"
         var forventetPåminnetEtter = LocalDateTime.now().plusSeconds(timeout)
@@ -242,7 +250,6 @@ internal class ComponentTest {
 
         TestConsumer.records(rapidTopic)
                 .map { it.value() }
-                .also { println("read $it") }
                 .map { objectMapper.readTree(it) }
                 .filter { it.hasNonNull("vedtaksperiodeId") }
                 .filter { it.hasNonNull("tilstand") }
@@ -265,7 +272,7 @@ internal class ComponentTest {
                 tilstand = tilstand,
                 endringstidspunkt = endringstidspunkt,
                 timeout = timeout
-        ).also { println("sender $it")})).get()
+        ))).get()
         return vedtaksperiodeId
     }
 

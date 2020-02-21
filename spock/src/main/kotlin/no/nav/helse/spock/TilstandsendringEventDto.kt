@@ -26,9 +26,7 @@ class TilstandsendringEventDto private constructor(
         fun fraJson(event: String): TilstandsendringEventDto? {
             return try {
                 objectMapper.readTree(event).let { jsonNode ->
-                    jsonNode["@event_name"]?.asText()?.also {
-                        require(it == "vedtaksperiode_endret")
-                    }
+                    require(jsonNode.path("@event_name").asText() == "vedtaksperiode_endret")
                     val timeout = jsonNode.requiredLong("timeout")
                     TilstandsendringEventDto(
                         aktørId = jsonNode.requiredString("aktørId"),
