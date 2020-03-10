@@ -36,12 +36,16 @@ spec:
     paths:
       - mountPath: /var/run/secrets/nais.io/vault
         kvPath: /kv/preprod/fss/spock/default
-      - mountPath: /var/run/secrets/nais.io/serviceuser
+      - mountPath: /var/run/secrets/nais.io/service_user
         kvPath: /serviceuser/data/dev/srvspock
 
   env:
   - name: KAFKA_BOOTSTRAP_SERVERS
     value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
+  - name: KAFKA_CONSUMER_GROUP_ID
+    value: spock-v3
+  - name: KAFKA_RAPID_TOPIC
+    value: helse-rapid-v1
   - name: DATABASE_HOST
     value: b27dbvl008.preprod.local
   - name: DATABASE_PORT

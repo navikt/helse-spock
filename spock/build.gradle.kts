@@ -1,9 +1,3 @@
-val slf4jVersion = "1.7.25"
-val ktorVersion = "1.2.4"
-val jacksonVersion = "2.9.8"
-val kafkaVersion = "2.3.0"
-val prometheusVersion = "0.6.0"
-val micrometerRegistryPrometheusVersion = "1.1.5"
 val junitJupiterVersion = "5.4.0"
 val flywayVersion = "6.0.0-beta"
 val hikariVersion = "3.3.1"
@@ -12,20 +6,31 @@ val kotliqueryVersion = "1.3.0"
 
 val mainClass = "no.nav.helse.spock.AppKt"
 
+val githubUser: String by project
+val githubPassword: String by project
+
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.2.3")
-    implementation("net.logstash.logback:logstash-logback-encoder:5.2")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("no.nav.helse:rapids-and-rivers:1.44ef801")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
-    implementation("org.apache.kafka:kafka-streams:$kafkaVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+}
 
-    implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/rapids-and-rivers")
+        credentials {
+            username = githubUser
+            password = githubPassword
+        }
+    }
 }
 
 repositories {
