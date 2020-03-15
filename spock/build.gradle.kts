@@ -1,8 +1,8 @@
-val junitJupiterVersion = "5.4.0"
-val flywayVersion = "6.0.0-beta"
-val hikariVersion = "3.3.1"
+val junitJupiterVersion = "5.6.0"
+val flywayVersion = "6.3.1"
+val hikariVersion = "3.4.2"
 val vaultJdbcVersion = "1.3.1"
-val kotliqueryVersion = "1.3.0"
+val kotliqueryVersion = "1.3.1"
 
 val mainClass = "no.nav.helse.spock.AppKt"
 
@@ -10,7 +10,7 @@ val githubUser: String by project
 val githubPassword: String by project
 
 dependencies {
-    implementation("no.nav.helse:rapids-and-rivers:1.ec0400d")
+    implementation("com.github.navikt:rapids-and-rivers:1.a468ae5")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
@@ -31,10 +31,6 @@ repositories {
             password = githubPassword
         }
     }
-}
-
-repositories {
-    maven("https://dl.bintray.com/kotlin/ktor")
 }
 
 tasks.named<Jar>("jar") {

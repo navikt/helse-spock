@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.60"
+    kotlin("jvm") version "1.3.70"
 }
 
-val junitJupiterVersion = "5.4.0"
+val junitJupiterVersion = "5.6.0"
 val jacksonVersion = "2.10.0"
 
 allprojects {
@@ -14,8 +14,6 @@ allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     dependencies {
-        implementation(kotlin("stdlib-jdk8"))
-
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -52,8 +50,6 @@ repositories {
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
     repositories {
         mavenCentral()
     }
