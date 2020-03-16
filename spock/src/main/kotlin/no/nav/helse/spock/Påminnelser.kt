@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -11,6 +12,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
                            private val dataSource: DataSource) : River.PacketListener {
 
     private companion object {
+        private val log = LoggerFactory.getLogger(Påminnelser::class.java)
         private val secureLogger = LoggerFactory.getLogger("tjenestekall")
     }
 
@@ -24,10 +26,14 @@ class Påminnelser(rapidsConnection: RapidsConnection,
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+        log.info("håndterer tilstandsendring", keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()))
         val event = TilstandsendringEventDto(packet)
         lagreTilstandsendring(dataSource, event)
         hentPåminnelser(dataSource).also {
-            if (it.isNotEmpty()) secureLogger.info("hentet ${it.size} påminnelser fra db")
+            if (it.isNotEmpty()) {
+                log.info("hentet ${it.size} påminnelser fra db")
+                secureLogger.info("hentet ${it.size} påminnelser fra db")
+            }
         }.onEach { påminnelse ->
             oppdaterPåminnelse(dataSource, påminnelse)
         }.map {
