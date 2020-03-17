@@ -1,6 +1,5 @@
 package no.nav.helse.spock
 
-import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -12,7 +11,16 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Påminnelser.Tilstandse
             tx.run(
                 queryOf(
                     "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json)))",
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
+                            "ON CONFLICT(vedtaksperiode_id) do " +
+                            "UPDATE SET tilstand=EXCLUDED.tilstand, " +
+                            "   timeout=EXCLUDED.timeout, " +
+                            "   endringstidspunkt=EXCLUDED.endringstidspunkt, " +
+                            "   neste_paminnelsetidspunkt=EXCLUDED.neste_paminnelsetidspunkt, " +
+                            "   antall_ganger_paminnet=0, " +
+                            "   data=EXCLUDED.data, " +
+                            "   opprettet=now() " +
+                            "WHERE paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt",
                     event.aktørId,
                     event.fødselsnummer,
                     event.organisasjonsnummer,
@@ -25,34 +33,9 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Påminnelser.Tilstandse
                 ).asExecute
             )
 
-            hentGjeldendeTilstand(tx, event.vedtaksperiodeId)?.also { nyesteEndringsevent ->
-                if (nyesteEndringsevent.timeout <= 0) {
-                    tx.run(
-                        queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=?",
-                            event.vedtaksperiodeId).asExecute)
-                } else {
-                    tx.run(
-                        queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id=? AND id != ?::bigint",
-                            event.vedtaksperiodeId, nyesteEndringsevent.id).asExecute)
-                }
-            }
+            tx.run(queryOf("DELETE FROM paminnelse WHERE timeout=0").asExecute)
         }
     }
-}
-
-class GjeldeneTilstand(val id: String, val timeout: Long)
-private fun hentGjeldendeTilstand(session: Session, vedtaksperiodeId: String): GjeldeneTilstand? {
-    return session.run(
-        queryOf("SELECT id, timeout FROM paminnelse " +
-                "WHERE vedtaksperiode_id = ? " +
-                "ORDER BY endringstidspunkt DESC, opprettet DESC " +
-                "LIMIT 1", vedtaksperiodeId).map {
-            GjeldeneTilstand(
-                id = it.string(1),
-                timeout = it.long(2)
-            )
-        }.asSingle
-    )
 }
 
 fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
@@ -61,8 +44,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
             queryOf(
                 "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
                         "FROM paminnelse " +
-                        "WHERE timeout > 0 AND neste_paminnelsetidspunkt <= now() " +
-                        "AND id IN (SELECT DISTINCT ON (vedtaksperiode_id) id FROM paminnelse ORDER BY vedtaksperiode_id, endringstidspunkt DESC, opprettet DESC)"
+                        "WHERE neste_paminnelsetidspunkt <= now()"
             ).map {
                 PåminnelseDto(
                     id = it.string("id"),
