@@ -6,40 +6,37 @@ import kotliquery.using
 import javax.sql.DataSource
 
 fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.TilstandsendringEventDto) {
-    using(sessionOf(dataSource)) { session ->
-        session.transaction { tx ->
-            tx.run(
-                queryOf(
-                    "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
-                            "ON CONFLICT(vedtaksperiode_id) do " +
-                            "UPDATE SET tilstand=EXCLUDED.tilstand, " +
-                            "   timeout=EXCLUDED.timeout, " +
-                            "   endringstidspunkt=EXCLUDED.endringstidspunkt, " +
-                            "   neste_paminnelsetidspunkt=EXCLUDED.neste_paminnelsetidspunkt, " +
-                            "   antall_ganger_paminnet=0, " +
-                            "   data=EXCLUDED.data, " +
-                            "   opprettet=now() " +
-                            "WHERE paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt",
-                    event.aktørId,
-                    event.fødselsnummer,
-                    event.organisasjonsnummer,
-                    event.vedtaksperiodeId,
-                    event.tilstand,
-                    event.timeout,
-                    event.endringstidspunkt,
-                    event.endringstidspunkt.plusSeconds(event.timeout),
-                    event.originalJson
-                ).asExecute
-            )
-
-            tx.run(queryOf("DELETE FROM paminnelse WHERE timeout=0").asExecute)
-        }
+    using(sessionOf(dataSource)) {
+        it.run(
+            queryOf(
+                "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
+                        "ON CONFLICT(vedtaksperiode_id) do " +
+                        "UPDATE SET tilstand=EXCLUDED.tilstand, " +
+                        "   timeout=EXCLUDED.timeout, " +
+                        "   endringstidspunkt=EXCLUDED.endringstidspunkt, " +
+                        "   neste_paminnelsetidspunkt=EXCLUDED.neste_paminnelsetidspunkt, " +
+                        "   antall_ganger_paminnet=0, " +
+                        "   data=EXCLUDED.data, " +
+                        "   opprettet=now() " +
+                        "WHERE paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt",
+                event.aktørId,
+                event.fødselsnummer,
+                event.organisasjonsnummer,
+                event.vedtaksperiodeId,
+                event.tilstand,
+                event.timeout,
+                event.endringstidspunkt,
+                event.endringstidspunkt.plusSeconds(event.timeout),
+                event.originalJson
+            ).asExecute
+        )
     }
 }
 
 fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
     return using(sessionOf(dataSource)) { session ->
+        session.run(queryOf("DELETE FROM paminnelse WHERE timeout=0").asExecute)
         session.run(
             queryOf(
                 "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +

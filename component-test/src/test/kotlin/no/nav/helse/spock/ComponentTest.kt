@@ -212,6 +212,7 @@ internal class ComponentTest {
                 lagreTilstandsendring(ds, it)
             }
 
+            hentPåminnelser(ds)
             assertEquals(0, using(sessionOf(ds)) {
                 it.run(queryOf("SELECT COUNT(1) FROM paminnelse").map {
                     it.int(1)
