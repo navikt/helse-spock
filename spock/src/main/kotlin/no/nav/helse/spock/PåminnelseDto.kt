@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
+import java.util.*
 
 class PåminnelseDto(val id: String,
                     val aktørId: String,
@@ -26,7 +27,9 @@ class PåminnelseDto(val id: String,
 
     internal fun toJson() = objectMapper.writeValueAsString(
         mapOf(
+            "@id" to UUID.randomUUID().toString(),
             "@event_name" to "påminnelse",
+            "@opprettet" to påminnelsestidspunkt,
             "aktørId" to aktørId,
             "fødselsnummer" to fødselsnummer,
             "organisasjonsnummer" to organisasjonsnummer,
