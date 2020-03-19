@@ -83,7 +83,8 @@ internal class ComponentTest {
                 "KAFKA_RAPID_TOPIC" to rapidTopic,
                 "SERVICEUSER_USERNAME" to username,
                 "SERVICEUSER_PASSWORD" to password,
-                "DATABASE_JDBC_URL" to embeddedPostgres.getJdbcUrl("postgres", "postgres")
+                "DATABASE_JDBC_URL" to embeddedPostgres.getJdbcUrl("postgres", "postgres"),
+                "PAMINNELSER_SCHEDULE_SECONDS" to "1"
             )
         }
 
@@ -145,7 +146,7 @@ internal class ComponentTest {
         }
     }
 
-    private fun tilstandendringDto(json: String): Påminnelser.TilstandsendringEventDto {
+    private fun tilstandendringDto(json: String): Tilstandsendringer.TilstandsendringEventDto {
         val packet = JsonMessage(json, MessageProblems(json)).apply {
             requireValue("@event_name", "vedtaksperiode_endret")
             requireKey(
@@ -155,7 +156,7 @@ internal class ComponentTest {
             )
         }
 
-        return Påminnelser.TilstandsendringEventDto(packet)
+        return Tilstandsendringer.TilstandsendringEventDto(packet)
     }
 
     @Test

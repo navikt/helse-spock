@@ -5,7 +5,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import javax.sql.DataSource
 
-fun lagreTilstandsendring(dataSource: DataSource, event: Påminnelser.TilstandsendringEventDto) {
+fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.TilstandsendringEventDto) {
     using(sessionOf(dataSource)) { session ->
         session.transaction { tx ->
             tx.run(
