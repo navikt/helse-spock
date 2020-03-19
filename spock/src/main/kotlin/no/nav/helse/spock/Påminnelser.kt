@@ -29,6 +29,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
+        lastReportTime = LocalDateTime.now()
     }
 
     private fun lagPåminnelser(context: RapidsConnection.MessageContext) {

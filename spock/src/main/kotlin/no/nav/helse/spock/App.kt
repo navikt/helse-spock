@@ -2,7 +2,10 @@ package no.nav.helse.spock
 
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import org.slf4j.LoggerFactory
 import java.time.Duration
+
+private val log = LoggerFactory.getLogger("no.nav.helse.Spock")
 
 fun main() {
     launchApp(System.getenv())
@@ -14,6 +17,8 @@ fun launchApp(env: Map<String, String>) {
 
     val schedule = env["PAMINNELSER_SCHEDULE_SECONDS"]?.let { Duration.ofSeconds(it.toLong()) }
         ?: Duration.ofMinutes(1)
+
+    log.info("Lager påminnelser ca. hver ${schedule.toSeconds()} sekunder")
 
     RapidApplication.create(env).apply {
         Tilstandsendringer(this, dataSource)
