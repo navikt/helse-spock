@@ -177,7 +177,6 @@ internal class ComponentTest {
 
             hentPåminnelser(ds).also {
                 assertEquals(1, it.size)
-                oppdaterPåminnelse(ds, it[0])
             }
 
             tilstandendringDto(

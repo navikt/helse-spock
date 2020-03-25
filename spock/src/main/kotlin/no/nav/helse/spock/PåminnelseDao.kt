@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -36,36 +37,38 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.Tils
 
 fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
     return using(sessionOf(dataSource)) { session ->
-        session.run(queryOf("DELETE FROM paminnelse WHERE timeout=0").asExecute)
-        session.run(
-            queryOf(
-                "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
-                        "FROM paminnelse " +
-                        "WHERE neste_paminnelsetidspunkt <= now()"
-            ).map {
-                PåminnelseDto(
-                    id = it.string("id"),
-                    aktørId = it.string("aktor_id"),
-                    fødselsnummer = it.string("fnr"),
-                    organisasjonsnummer = it.string("organisasjonsnummer"),
-                    vedtaksperiodeId = it.string("vedtaksperiode_id"),
-                    tilstand = it.string("tilstand"),
-                    timeout = it.long("timeout"),
-                    endringstidspunkt = it.localDateTime("endringstidspunkt"),
-                    antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
-                )
-            }.asList
-        )
+        session.transaction { tx ->
+            tx.run(queryOf("DELETE FROM paminnelse WHERE timeout=0").asExecute)
+            tx.run(
+                queryOf(
+                    "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                            "FROM paminnelse " +
+                            "WHERE neste_paminnelsetidspunkt <= now()"
+                ).map {
+                    PåminnelseDto(
+                        id = it.string("id"),
+                        aktørId = it.string("aktor_id"),
+                        fødselsnummer = it.string("fnr"),
+                        organisasjonsnummer = it.string("organisasjonsnummer"),
+                        vedtaksperiodeId = it.string("vedtaksperiode_id"),
+                        tilstand = it.string("tilstand"),
+                        timeout = it.long("timeout"),
+                        endringstidspunkt = it.localDateTime("endringstidspunkt"),
+                        antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
+                    )
+                }.asList
+            ).onEach {
+                oppdaterPåminnelse(tx, it)
+            }
+        }
     }
 }
 
-fun oppdaterPåminnelse(dataSource: DataSource, påminnelse: PåminnelseDto) {
-    using(sessionOf(dataSource)) { session ->
-        session.run(
-            queryOf(
-                "UPDATE paminnelse SET neste_paminnelsetidspunkt = (now() + timeout * interval '1 second'), antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=?::BIGINT",
-                påminnelse.id
-            ).asExecute
-        )
-    }
+private fun oppdaterPåminnelse(transactionalSession: TransactionalSession, påminnelse: PåminnelseDto) {
+    transactionalSession.run(
+        queryOf(
+            "UPDATE paminnelse SET neste_paminnelsetidspunkt = (now() + timeout * interval '1 second'), antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=?::BIGINT",
+            påminnelse.id
+        ).asExecute
+    )
 }

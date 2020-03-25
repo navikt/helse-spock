@@ -38,9 +38,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
         log.info("hentet ${påminnelser.size} påminnelser fra db")
         secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
 
-        påminnelser.onEach { påminnelse ->
-            oppdaterPåminnelse(dataSource, påminnelse)
-        }.map {
+        påminnelser.map {
             it.fødselsnummer to it.toJson()
         }.onEach { (_, påminnelse) ->
             secureLogger.info("Produserer $påminnelse")
