@@ -5,7 +5,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     testImplementation(project(":spock"))
-    testImplementation("com.github.navikt:rapids-and-rivers:1.a468ae5")
+    testImplementation("com.github.navikt:rapids-and-rivers:1.1822995")
     testImplementation("com.zaxxer:HikariCP:3.4.2")
     testImplementation("com.github.seratch:kotliquery:1.3.1")
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
