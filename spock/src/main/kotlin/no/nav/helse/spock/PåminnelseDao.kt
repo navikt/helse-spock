@@ -10,17 +10,19 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.Tils
     using(sessionOf(dataSource)) {
         it.run(
             queryOf(
-                "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, neste_paminnelsetidspunkt, data) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
+                "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, timeout, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
                         "ON CONFLICT(vedtaksperiode_id) do " +
                         "UPDATE SET tilstand=EXCLUDED.tilstand, " +
                         "   timeout=EXCLUDED.timeout, " +
                         "   endringstidspunkt=EXCLUDED.endringstidspunkt, " +
+                        "   endringstidspunkt_nanos=EXCLUDED.endringstidspunkt_nanos, " +
                         "   neste_paminnelsetidspunkt=EXCLUDED.neste_paminnelsetidspunkt, " +
                         "   antall_ganger_paminnet=0, " +
                         "   data=EXCLUDED.data, " +
                         "   opprettet=now() " +
-                        "WHERE paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt",
+                        "WHERE (paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt) " +
+                        "   OR (paminnelse.endringstidspunkt = EXCLUDED.endringstidspunkt AND paminnelse.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)",
                 event.aktørId,
                 event.fødselsnummer,
                 event.organisasjonsnummer,
@@ -28,6 +30,7 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.Tils
                 event.tilstand,
                 event.timeout,
                 event.endringstidspunkt,
+                event.endringstidspunkt.nano,
                 event.endringstidspunkt.plusSeconds(event.timeout),
                 event.originalJson
             ).asExecute
