@@ -1,6 +1,5 @@
 package no.nav.helse.spock
 
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -25,7 +24,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        log.info("håndterer tilstandsendring", keyValue("vedtaksperiodeId", packet["vedtaksperiodeId"].asText()))
         val event = TilstandsendringEventDto(packet)
         lagreTilstandsendring(dataSource, event)
     }

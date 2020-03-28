@@ -34,10 +34,9 @@ class Påminnelser(rapidsConnection: RapidsConnection,
 
     private fun lagPåminnelser(context: RapidsConnection.MessageContext) {
         val påminnelser = hentPåminnelser(dataSource)
-
+        if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} påminnelser fra db")
         secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
-
         påminnelser.map {
             it.fødselsnummer to it.toJson()
         }.onEach { (_, påminnelse) ->
