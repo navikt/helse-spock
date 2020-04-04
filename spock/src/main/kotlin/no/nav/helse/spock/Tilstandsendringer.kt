@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -18,8 +19,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
             validate { it.requireKey("timeout", "aktørId", "fødselsnummer",
-                "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand",
-                "endringstidspunkt") }
+                "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand") }
+            validate { it.require("endringstidspunkt", JsonNode::asLocalDateTime) }
         }.register(this)
     }
 
