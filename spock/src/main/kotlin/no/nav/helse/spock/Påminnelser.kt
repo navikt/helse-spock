@@ -10,6 +10,7 @@ import javax.sql.DataSource
 
 class Påminnelser(rapidsConnection: RapidsConnection,
                   private val dataSource: DataSource,
+                  private val spesialistPåminnelseDao: SpesialistPåminnelseDao,
                   schedule: Duration) : River.PacketListener {
 
     private companion object {
@@ -29,6 +30,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
+        lagSpesialistPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
 
@@ -37,6 +39,20 @@ class Påminnelser(rapidsConnection: RapidsConnection,
         if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} påminnelser fra db")
         secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
+        påminnelser.map {
+            it.fødselsnummer to it.toJson()
+        }.onEach { (_, påminnelse) ->
+            secureLogger.info("Produserer $påminnelse")
+        }.forEach { (key, value) ->
+            context.send(key, value)
+        }
+    }
+
+    private fun lagSpesialistPåminnelser(context: RapidsConnection.MessageContext) {
+        val påminnelser = spesialistPåminnelseDao.hentPåminnelser()
+        if (påminnelser.isEmpty()) return
+        log.info("hentet ${påminnelser.size} spesialistpåminnelser fra db")
+        secureLogger.info("hentet ${påminnelser.size} spesialistpåminnelser fra db")
         påminnelser.map {
             it.fødselsnummer to it.toJson()
         }.onEach { (_, påminnelse) ->
