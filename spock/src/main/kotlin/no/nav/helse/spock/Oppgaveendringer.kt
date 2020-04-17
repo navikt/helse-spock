@@ -11,7 +11,7 @@ class Oppgaveendringer(rapidsConnection: RapidsConnection,
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "oppgave_opprettet") }
+            validate { it.requireValue("@event_name", "oppgave_oppdatert") }
             validate { it.requireKey("timeout", "spleisBehovId", "fødselsnummer") }
             validate { it.require("endringstidspunkt", JsonNode::asLocalDateTime) }
         }.register(this)
