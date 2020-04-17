@@ -18,7 +18,7 @@ class Oppgaveendringer(rapidsConnection: RapidsConnection,
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val referanse = packet["spleisBehovId"].asText()
+        val referanse = packet["spleisbehovId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val timeout = packet["timeout"].longValue()
         val endringstidspunkt = packet["endringstidspunkt"].asLocalDateTime()
