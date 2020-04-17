@@ -17,7 +17,7 @@ class SpesialistPåminnelseDto(
     internal fun toJson() = objectMapper.writeValueAsString(
             mapOf(
                     "@id" to UUID.randomUUID().toString(),
-                    "@event_name" to "spesialistpåminnelse",
+                    "@event_name" to "spesialist_påminnelse",
                     "@opprettet" to påminnelsestidspunkt,
                     "oppgaveendrettidspunkt" to endringstidspunkt,
                     "referanse" to referanse,
