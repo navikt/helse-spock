@@ -1,10 +1,7 @@
 package no.nav.helse.spock
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -13,15 +10,20 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
     private companion object {
         private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
+        private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
     }
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
+            validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
             validate { it.requireKey("timeout", "aktørId", "fødselsnummer",
                 "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand") }
             validate { it.require("endringstidspunkt", JsonNode::asLocalDateTime) }
         }.register(this)
+    }
+
+    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+        sikkerLog.error("kunne ikke forstå vedtaksperiode_endret: $problems")
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {

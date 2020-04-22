@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import no.nav.helse.rapids_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.util.*
 
@@ -11,20 +12,19 @@ class SpesialistPåminnelseDto(
         private val endringstidspunkt: LocalDateTime,
         private val timeout: Long
 ) {
-    val påminnelsestidspunkt = LocalDateTime.now()
-    val nestePåminnelsestidspunkt = påminnelsestidspunkt.plusSeconds(timeout)
+    private val påminnelsestidspunkt = LocalDateTime.now()
+    private val nestePåminnelsestidspunkt = påminnelsestidspunkt.plusSeconds(timeout)
 
-    internal fun toJson() = objectMapper.writeValueAsString(
-            mapOf(
-                    "@id" to UUID.randomUUID().toString(),
-                    "@event_name" to "spesialist_påminnelse",
-                    "@opprettet" to påminnelsestidspunkt,
-                    "oppgaveendrettidspunkt" to endringstidspunkt,
-                    "referanse" to referanse,
-                    "antallGangerPåminnet" to antallGangerPåminnet,
-                    "påminnelsestidspunkt" to påminnelsestidspunkt,
-                    "nestePåminnelsestidspunkt" to nestePåminnelsestidspunkt
-            ))
+    internal fun toJson() = JsonMessage.newMessage(mapOf(
+        "@id" to UUID.randomUUID(),
+        "@event_name" to "spesialist_påminnelse",
+        "@opprettet" to påminnelsestidspunkt,
+        "oppgaveendrettidspunkt" to endringstidspunkt,
+        "referanse" to referanse,
+        "antallGangerPåminnet" to antallGangerPåminnet,
+        "påminnelsestidspunkt" to påminnelsestidspunkt,
+        "nestePåminnelsestidspunkt" to nestePåminnelsestidspunkt
+    )).toJson()
 
     override fun toString(): String {
         return "SpesialistPåminnelseDto(id='$id', fødselsnummer='$fødselsnummer', referanse='$referanse'," +

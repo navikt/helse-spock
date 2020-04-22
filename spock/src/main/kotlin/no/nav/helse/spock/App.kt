@@ -1,17 +1,11 @@
 package no.nav.helse.spock
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
 private val log = LoggerFactory.getLogger("no.nav.helse.Spock")
-val objectMapper = jacksonObjectMapper()
-.registerModule(JavaTimeModule())
-.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
 fun main() {
     launchApp(System.getenv())
