@@ -18,12 +18,12 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
             validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
             validate { it.requireKey("timeout", "aktørId", "fødselsnummer",
                 "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand") }
-            validate { it.require("endringstidspunkt", JsonNode::asLocalDateTime) }
+            validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
         }.register(this)
     }
 
     override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
-        sikkerLog.error("kunne ikke forstå vedtaksperiode_endret: $problems")
+        sikkerLog.error("kunne ikke forstå vedtaksperiode_endret: ${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
@@ -38,7 +38,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
         val tilstand = packet["gjeldendeTilstand"].asText()
         val timeout = packet["timeout"].longValue()
-        val endringstidspunkt = packet["endringstidspunkt"].asLocalDateTime()
+        val endringstidspunkt = packet["@opprettet"].asLocalDateTime()
         val originalJson = packet.toJson()
     }
 }

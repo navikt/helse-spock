@@ -1,5 +1,6 @@
 package no.nav.helse.spock
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -15,6 +16,7 @@ import kotliquery.using
 import no.nav.common.KafkaEnvironment
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 import org.apache.kafka.clients.admin.AdminClient
@@ -151,9 +153,9 @@ internal class ComponentTest {
             requireValue("@event_name", "vedtaksperiode_endret")
             requireKey(
                 "timeout", "aktørId", "fødselsnummer",
-                "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand",
-                "endringstidspunkt"
+                "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand"
             )
+            require("@opprettet", JsonNode::asLocalDateTime)
         }
 
         return Tilstandsendringer.TilstandsendringEventDto(packet)
@@ -326,7 +328,7 @@ internal class ComponentTest {
   "vedtaksperiodeId": "$vedtaksPeriodeId",
   "gjeldendeTilstand": "$tilstand",
   "forrigeTilstand": "START",
-  "endringstidspunkt": "$endringstidspunkt",
+  "@opprettet": "$endringstidspunkt",
   "timeout": $timeout
 }"""
 
