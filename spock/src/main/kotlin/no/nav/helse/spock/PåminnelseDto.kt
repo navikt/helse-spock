@@ -34,7 +34,8 @@ class PåminnelseDto(val id: String,
         "tilstandsendringstidspunkt" to endringstidspunkt,
         "antallGangerPåminnet" to antallGangerPåminnet,
         "påminnelsestidspunkt" to påminnelsestidspunkt,
-        "nestePåminnelsestidspunkt" to nestePåminnelsetidspunkt
+        "nestePåminnelsestidspunkt" to nestePåminnelsetidspunkt,
+        "timeout_første_påminnelse" to timeout
     )).toJson()
 
     override fun toString(): String {
