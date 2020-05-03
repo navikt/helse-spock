@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
@@ -109,8 +110,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "TIL_UTBETALING",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING",
-                    "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> LocalDateTime.MAX
-                    else -> LocalDateTime.MIN
+                    "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    else -> LocalDate.ofYearDay(0, 1).atStartOfDay()
                 }
         }
     }
