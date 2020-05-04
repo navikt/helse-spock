@@ -105,16 +105,9 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                         }
                     }
                     "AVVENTER_GODKJENNING" -> {
-                        // vent tre virkedager med initiel påminnelse, 1 time pr. påminnelse deretter
+                        // vent én dag med initiel påminnelse, 1 time pr. påminnelse deretter
                         if (antallGangerPåminnet > 1) endringstidspunkt.plusHours(1)
-                        else {
-                            val dager = 3L + when (endringstidspunkt.dayOfWeek) {
-                                DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY -> 2
-                                DayOfWeek.SATURDAY -> 1
-                                else -> 0
-                            }
-                            endringstidspunkt.plusDays(dager)
-                        }
+                        else LocalTime.of(21, 0, 0).atDate(endringstidspunkt.plusDays(1).toLocalDate())
                     }
                     "TIL_UTBETALING",
                     "UTBETALING_FEILET",
