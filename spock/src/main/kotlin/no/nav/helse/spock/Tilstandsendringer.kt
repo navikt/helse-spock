@@ -33,6 +33,15 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         val event = TilstandsendringEventDto(packet)
         lagreTilstandsendring(dataSource, event)
+        context.send(JsonMessage.newMessage(mapOf(
+            "@event_name" to "planlagt_påminnelse",
+            "@opprettet" to LocalDateTime.now(),
+            "vedtaksperiodeId" to event.vedtaksperiodeId,
+            "tilstand" to event.tilstand,
+            "endringstidspunkt" to event.endringstidspunkt,
+            "påminnelsetidspunkt" to event.nestePåminnelsetidspunkt(),
+            "er_avsluttet" to event.erSluttilstand()
+        )).toJson())
     }
 
     class TilstandsendringEventDto(packet: JsonMessage) {
