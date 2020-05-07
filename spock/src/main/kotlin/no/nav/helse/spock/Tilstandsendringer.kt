@@ -65,7 +65,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
             fun nestePåminnelsetidspunkt(tilstand: String, endringstidspunkt: LocalDateTime, antallGangerPåminnet: Int) =
                 when (tilstand) {
-                    "START",
                     "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_FERDIG_GAP",
@@ -77,11 +76,12 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> endringstidspunkt.plusDays(30)
+                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> endringstidspunkt.plusHours(3)
                     "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
-                    "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_HISTORIKK",
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(1)
                     "AVVENTER_SIMULERING" -> {
                         // påminn hver time innenfor åpningstid (man-fre 07:00-19:59), ellers vent til innenfor åpningstid
                         val klslett = endringstidspunkt.toLocalTime()
@@ -104,16 +104,12 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                             }
                         }
                     }
-                    "AVVENTER_GODKJENNING" -> {
-                        // vent én dag med initiel påminnelse, 1 time pr. påminnelse deretter
-                        if (antallGangerPåminnet > 1) endringstidspunkt.plusHours(1)
-                        else LocalTime.of(21, 0, 0).atDate(endringstidspunkt.plusDays(1).toLocalDate())
-                    }
+                    "START",
                     "TIL_UTBETALING",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING",
                     "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
-                    else -> LocalDate.ofYearDay(0, 1).atStartOfDay()
+                    else -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                 }
         }
     }
