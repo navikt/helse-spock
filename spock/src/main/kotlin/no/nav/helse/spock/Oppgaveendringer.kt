@@ -16,7 +16,7 @@ class Oppgaveendringer(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "oppgave_oppdatert") }
-            validate { it.requireKey("timeout", "spleisbehovId", "fødselsnummer") }
+            validate { it.requireKey("timeout", "eventId", "fødselsnummer") }
             validate { it.require("endringstidspunkt", JsonNode::asLocalDateTime) }
         }.register(this)
     }
@@ -26,7 +26,7 @@ class Oppgaveendringer(
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val referanse = packet["spleisbehovId"].asText()
+        val referanse = packet["eventId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val timeout = packet["timeout"].longValue()
         val endringstidspunkt = packet["endringstidspunkt"].asLocalDateTime()
