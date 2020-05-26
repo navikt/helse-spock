@@ -1,14 +1,16 @@
 package no.nav.helse.spock
 
+import kotliquery.Session
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import java.util.UUID
 import javax.sql.DataSource
 
 fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.TilstandsendringEventDto) {
     using(sessionOf(dataSource)) {
-        if (event.erSluttilstand()) it.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id = ?", event.vedtaksperiodeId).asExecute)
+        if (event.erSluttilstand()) slettPåminnelse(it, event.vedtaksperiodeId)
         else it.run(queryOf(
             "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
@@ -33,6 +35,15 @@ fun lagreTilstandsendring(dataSource: DataSource, event: Tilstandsendringer.Tils
             event.originalJson
         ).asExecute)
     }
+}
+
+private fun slettPåminnelse(
+    session: Session,
+    vedtaksperiodeId: String
+) = session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId).asExecute)
+
+fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = using(sessionOf(dataSource)) { session ->
+    slettPåminnelse(session, vedtaksperiodeId)
 }
 
 fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {

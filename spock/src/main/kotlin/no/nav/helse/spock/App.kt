@@ -21,6 +21,7 @@ fun launchApp(env: Map<String, String>) {
     log.info("Lager påminnelser ca. hver ${schedule.toSeconds()} sekunder")
 
     RapidApplication.create(env).apply {
+        Tilbakerulling(this, dataSource)
         Tilstandsendringer(this, dataSource)
         Påminnelser(this, dataSource, spesialistPåminnelseDao, schedule)
         Oppgaveendringer(this, spesialistPåminnelseDao)
