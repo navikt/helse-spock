@@ -9,8 +9,12 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -56,7 +60,6 @@ internal class SpleisPåminnelserTest {
     }
 
     @Test
-    @Disabled("Påminnelser til Spleis er midlertidig deaktivert")
     fun `lager påminnelser`() {
         val vedtaksperiodeId = UUID.randomUUID().toString()
         val tilstand = "AVVENTER_GAP"

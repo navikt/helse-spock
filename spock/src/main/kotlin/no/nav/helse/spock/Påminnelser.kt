@@ -29,8 +29,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
-        //TODO: Midlertidig deaktivert for å minske trafikken mot spleis
-        // lagPåminnelser(context)
+        lagPåminnelser(context)
         lagSpesialistPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
