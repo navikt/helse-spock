@@ -1,19 +1,16 @@
-val junitJupiterVersion = "5.6.0"
+val junitJupiterVersion = "5.6.2"
 val mainClass = "no.nav.helse.spock.AppKt"
 
-val githubUser: String by project
-val githubPassword: String by project
-
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:1.74ae9cb")
+    implementation("com.github.navikt:rapids-and-rivers:fa839faa1c")
 
-    implementation("org.flywaydb:flyway-core:6.3.1")
-    implementation("com.zaxxer:HikariCP:3.4.2")
+    implementation("org.flywaydb:flyway-core:6.5.0")
+    implementation("com.zaxxer:HikariCP:3.4.5")
     implementation("no.nav:vault-jdbc:1.3.1")
     implementation("com.github.seratch:kotliquery:1.3.1")
 
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
-    testImplementation("org.awaitility:awaitility:3.1.6")
+    testImplementation("org.awaitility:awaitility:4.0.3")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
@@ -21,32 +18,27 @@ dependencies {
 }
 
 repositories {
-    mavenCentral()
-    maven("https://kotlin.bintray.com/ktor")
-    maven {
-        url = uri("https://maven.pkg.github.com/navikt/rapids-and-rivers")
-        credentials {
-            username = githubUser
-            password = githubPassword
-        }
-    }
+    jcenter()
+    maven("https://jitpack.io")
 }
 
-tasks.named<Jar>("jar") {
-    archiveBaseName.set("app")
+tasks {
+    withType<Jar> {
+        archiveBaseName.set("app")
 
-    manifest {
-        attributes["Main-Class"] = mainClass
-        attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-            it.name
+        manifest {
+            attributes["Main-Class"] = mainClass
+            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
         }
-    }
 
-    doLast {
-        configurations.runtimeClasspath.get().forEach {
-            val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists())
-                it.copyTo(file)
+        doLast {
+            configurations.runtimeClasspath.get().forEach {
+                val file = File("$buildDir/libs/${it.name}")
+                if (!file.exists())
+                    it.copyTo(file)
+            }
         }
     }
 }
