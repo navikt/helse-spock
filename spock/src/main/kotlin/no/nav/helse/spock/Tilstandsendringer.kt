@@ -76,7 +76,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> endringstidspunkt.plusHours(3)
+                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> endringstidspunkt.plusHours(3).plussTilfeldigeMinutter(60)
                     "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
@@ -114,3 +114,5 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         }
     }
 }
+
+private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) = if(minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())

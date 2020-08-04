@@ -11,6 +11,7 @@ import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -103,6 +104,23 @@ internal class SpleisPåminnelserTest {
         assertEquals(0, hentAntallPåminnelser(vedtaksperiodeId))
     }
 
+    @Test
+    fun `påminnelser for tilfeldige minutter lagt til`() {
+        val vedtaksperiodeId = UUID.randomUUID().toString()
+        val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
+        val endringstidspunkt = LocalDateTime
+                .now()
+                .minusHours(24)
+
+        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
+        val påminnelser = hentPåminnelserFraDatabasen(dataSource)
+        val påminnelse = påminnelser.first()
+
+        assert(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(3))
+                && !påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(4)))
+        assertEquals(1, påminnelser.size)
+    }
+
     private fun hentAntallPåminnelser(vedtaksperiodeId: String) = using(sessionOf(dataSource)) { session ->
         session.run(queryOf("SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;", vedtaksperiodeId)
             .map { it.long("vedtaksperiode_count") }
@@ -134,15 +152,27 @@ internal class SpleisPåminnelserTest {
         )
     ).toJson()
 
-    private fun createHikariConfig(jdbcUrl: String, username: String? = null, password: String? = null) =
-        HikariConfig().apply {
-            this.jdbcUrl = jdbcUrl
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-            username?.let { this.username = it }
-            password?.let { this.password = it }
+    private fun hentPåminnelserFraDatabasen(dataSource: DataSource): List<PåminnelseDto> {
+        return using(sessionOf(dataSource)) { session ->
+            session.transaction { tx ->
+                tx.run(
+                        queryOf(
+                                "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                                        "FROM paminnelse "
+                        ).map {
+                            PåminnelseDto(
+                                    id = it.string("id"),
+                                    aktørId = it.string("aktor_id"),
+                                    fødselsnummer = it.string("fnr"),
+                                    organisasjonsnummer = it.string("organisasjonsnummer"),
+                                    vedtaksperiodeId = it.string("vedtaksperiode_id"),
+                                    tilstand = it.string("tilstand"),
+                                    endringstidspunkt = it.localDateTime("endringstidspunkt"),
+                                    antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
+                            )
+                        }.asList
+                )
+            }
         }
+    }
 }
