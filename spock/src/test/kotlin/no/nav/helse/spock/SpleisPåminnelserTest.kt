@@ -1,7 +1,6 @@
 package no.nav.helse.spock
 
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -11,7 +10,6 @@ import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,7 +18,7 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
@@ -46,7 +44,7 @@ internal class SpleisPåminnelserTest {
         rapid = TestRapid().apply {
             Tilbakerulling(this, dataSource)
             Tilstandsendringer(this, dataSource)
-            Påminnelser(this, dataSource, SpesialistPåminnelseDao(dataSource), Duration.ofMillis(1))
+            Påminnelser(this, dataSource, Duration.ofMillis(1))
         }
     }
 

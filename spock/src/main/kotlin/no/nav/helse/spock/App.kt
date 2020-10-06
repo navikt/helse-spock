@@ -14,7 +14,6 @@ fun main() {
 fun launchApp(env: Map<String, String>) {
     val dataSourceBuilder = DataSourceBuilder(env)
     val dataSource = dataSourceBuilder.getDataSource()
-    val spesialistPåminnelseDao = SpesialistPåminnelseDao(dataSource)
     val schedule = env["PAMINNELSER_SCHEDULE_SECONDS"]?.let { Duration.ofSeconds(it.toLong()) }
         ?: Duration.ofMinutes(1)
 
@@ -24,8 +23,7 @@ fun launchApp(env: Map<String, String>) {
         Tilbakerulling(this, dataSource)
         Forkastelser(this, dataSource)
         Tilstandsendringer(this, dataSource)
-        Påminnelser(this, dataSource, spesialistPåminnelseDao, schedule)
-        Oppgaveendringer(this, spesialistPåminnelseDao)
+        Påminnelser(this, dataSource, schedule)
     }.apply {
         register(object : RapidsConnection.StatusListener {
             override fun onStartup(rapidsConnection: RapidsConnection) {
