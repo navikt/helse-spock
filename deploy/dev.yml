@@ -46,6 +46,8 @@ spec:
     value: spock-v3
   - name: KAFKA_RAPID_TOPIC
     value: helse-rapid-v1
+  - name: KAFKA_RESET_POLICY
+    value: none
   - name: DATABASE_HOST
     value: b27dbvl008.preprod.local
   - name: DATABASE_PORT
