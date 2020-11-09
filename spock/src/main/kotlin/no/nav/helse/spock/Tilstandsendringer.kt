@@ -80,8 +80,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
-                    "AVVENTER_HISTORIKK",
-                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
                     "AVVENTER_SIMULERING" -> {
                         // påminn hver time innenfor åpningstid (man-fre 07:00-19:59), ellers vent til innenfor åpningstid
                         val klslett = endringstidspunkt.toLocalTime()
