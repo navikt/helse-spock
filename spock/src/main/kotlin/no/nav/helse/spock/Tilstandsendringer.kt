@@ -82,6 +82,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_VILKÅRSPRØVING_GAP",
                     "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
+                    "TIL_UTBETALING",
                     "AVVENTER_SIMULERING" -> {
                         // påminn hver time innenfor åpningstid (man-fre 07:00-19:59), ellers vent til innenfor åpningstid
                         val klslett = endringstidspunkt.toLocalTime()
@@ -105,7 +106,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                         }
                     }
                     "START",
-                    "TIL_UTBETALING",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING",
                     "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()

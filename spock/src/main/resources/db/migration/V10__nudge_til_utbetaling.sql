@@ -1,0 +1,1 @@
+UPDATE paminnelse SET neste_paminnelsetidspunkt = now() + interval '1 Hour' WHERE tilstand = 'TIL_UTBETALING';
