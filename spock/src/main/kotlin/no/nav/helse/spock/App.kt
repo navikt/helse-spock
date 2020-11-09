@@ -22,6 +22,7 @@ fun launchApp(env: Map<String, String>) {
     RapidApplication.create(env).apply {
         Tilbakerulling(this, dataSource)
         Forkastelser(this, dataSource)
+        BogusPåminnelser(this, dataSource)
         Tilstandsendringer(this, dataSource)
         Påminnelser(this, dataSource, schedule)
     }.apply {
