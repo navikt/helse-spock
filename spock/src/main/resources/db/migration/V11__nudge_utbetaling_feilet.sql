@@ -1,0 +1,1 @@
+UPDATE paminnelse SET neste_paminnelsetidspunkt = now() + interval '30 minutes' WHERE tilstand = 'UTBETALING_FEILET';
