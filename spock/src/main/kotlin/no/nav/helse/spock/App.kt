@@ -24,6 +24,7 @@ fun launchApp(env: Map<String, String>) {
         Forkastelser(this, dataSource)
         BogusPåminnelser(this, dataSource)
         Tilstandsendringer(this, dataSource)
+        IkkePåminnelser(this, dataSource)
         Påminnelser(this, dataSource, schedule)
     }.apply {
         register(object : RapidsConnection.StatusListener {

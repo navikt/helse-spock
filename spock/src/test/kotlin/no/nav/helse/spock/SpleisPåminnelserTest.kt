@@ -9,7 +9,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -44,6 +44,7 @@ internal class SpleisPåminnelserTest {
         rapid = TestRapid().apply {
             Tilbakerulling(this, dataSource)
             Tilstandsendringer(this, dataSource)
+            IkkePåminnelser(this, dataSource)
             Påminnelser(this, dataSource, Duration.ofMillis(1))
         }
     }
@@ -60,7 +61,7 @@ internal class SpleisPåminnelserTest {
 
     @Test
     fun `lager påminnelser`() {
-        val vedtaksperiodeId = UUID.randomUUID().toString()
+        val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_GAP"
         val endringstidspunkt = LocalDateTime
             .now()
@@ -86,7 +87,7 @@ internal class SpleisPåminnelserTest {
                 else (0 until inspektør.size)
                     .any {
                         inspektør.field(it, "@event_name").asText() == "påminnelse"
-                                && inspektør.field(it, "vedtaksperiodeId").asText() == vedtaksperiodeId
+                                && inspektør.field(it, "vedtaksperiodeId").asText() == vedtaksperiodeId.toString()
                                 && inspektør.field(it, "tilstand").asText() == tilstand
                     }
             }
@@ -94,7 +95,7 @@ internal class SpleisPåminnelserTest {
 
     @Test
     fun `sletter påminnelser når en vedtaksperiode blir slettet`() {
-        val vedtaksperiodeId = UUID.randomUUID().toString()
+        val vedtaksperiodeId = UUID.randomUUID()
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, "AVVENTER_INNTEKTSMELDING_FERDIG_GAP", LocalDate.EPOCH.atStartOfDay()))
         assertEquals(1, hentAntallPåminnelser(vedtaksperiodeId))
 
@@ -104,29 +105,58 @@ internal class SpleisPåminnelserTest {
 
     @Test
     fun `påminnelser for tilfeldige minutter lagt til`() {
-        val vedtaksperiodeId = UUID.randomUUID().toString()
+        val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
         val endringstidspunkt = LocalDateTime
                 .now()
                 .minusHours(24)
 
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
-        val påminnelser = hentPåminnelserFraDatabasen(dataSource)
-        val påminnelse = påminnelser.first()
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
 
-        assert(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(3))
-                && !påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(4)))
-        assertEquals(1, påminnelser.size)
+        assertTrue(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(3)))
+        assertFalse(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(4)))
     }
 
-    private fun hentAntallPåminnelser(vedtaksperiodeId: String) = using(sessionOf(dataSource)) { session ->
-        session.run(queryOf("SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;", vedtaksperiodeId)
+    @Test
+    fun `retter tilstand når påminnelse var uaktuell`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
+        val endringstidspunkt = LocalDateTime
+            .now()
+            .minusHours(24)
+        val nyttTidspunkt = LocalDateTime.now()
+        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
+        rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
+
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+
+        assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
+        assertEquals("TIL_UTBETALING", påminnelse.tilstand)
+    }
+
+    @Test
+    fun `Endrer ikke påminnelse dersom event om uaktuell påminnelse er eldre enn nåværende`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
+        val endringstidspunkt = LocalDateTime.now()
+        val nyttTidspunkt = LocalDateTime.now().minusHours(24)
+        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
+        rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
+
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+        assertEquals(endringstidspunkt, påminnelse.endringstidspunkt)
+        assertEquals(tilstand, påminnelse.tilstand)
+    }
+
+    private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) { session ->
+        session.run(queryOf("SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;", vedtaksperiodeId.toString())
             .map { it.long("vedtaksperiode_count") }
             .asSingle)
     }
 
     @Language("JSON")
-    private fun vedtaksperiodeSlettet(vedtaksperiodeId: String) = """{
+    private fun vedtaksperiodeSlettet(vedtaksperiodeId: UUID) = """{
             "@event_name": "person_rullet_tilbake",
             "hendelseId": "030001BD-8FBA-4324-9725-D618CE5B83E9",
             "fødselsnummer": "fnr",
@@ -134,7 +164,7 @@ internal class SpleisPåminnelserTest {
         }"""
 
     private fun tilstandsendringsevent(
-        vedtaksperiodeId: String,
+        vedtaksperiodeId: UUID,
         tilstand: String,
         endringstidspunkt: LocalDateTime
     ) = JsonMessage.newMessage(
@@ -143,20 +173,36 @@ internal class SpleisPåminnelserTest {
             "aktørId" to "1234567890123",
             "fødselsnummer" to "01019000000",
             "organisasjonsnummer" to "123456789",
-            "vedtaksperiodeId" to vedtaksperiodeId,
+            "vedtaksperiodeId" to vedtaksperiodeId.toString(),
             "gjeldendeTilstand" to tilstand,
             "forrigeTilstand" to "START",
             "@opprettet" to "$endringstidspunkt"
         )
     ).toJson()
 
-    private fun hentPåminnelserFraDatabasen(dataSource: DataSource): List<PåminnelseDto> {
-        return using(sessionOf(dataSource)) { session ->
+    private fun ikkePåminnelseEvent(
+        vedtaksperiodeId: UUID,
+        tilstand: String,
+        endringstidspunkt: LocalDateTime
+    ) = JsonMessage.newMessage(
+        mapOf(
+            "@event_name" to "vedtaksperiode_ikke_påminnet",
+            "aktørId" to "1234567890123",
+            "fødselsnummer" to "01019000000",
+            "organisasjonsnummer" to "123456789",
+            "vedtaksperiodeId" to vedtaksperiodeId.toString(),
+            "tilstand" to tilstand,
+            "@opprettet" to "$endringstidspunkt"
+        )
+    ).toJson()
+
+    private fun hentPåminnelseFraDatabasen(dataSource: DataSource, vedtaksperiodeId: UUID): PåminnelseDto {
+        return requireNotNull(using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
                         queryOf(
-                                "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
-                                        "FROM paminnelse "
+                                "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                                        "FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId.toString()
                         ).map {
                             PåminnelseDto(
                                     id = it.string("id"),
@@ -165,12 +211,12 @@ internal class SpleisPåminnelserTest {
                                     organisasjonsnummer = it.string("organisasjonsnummer"),
                                     vedtaksperiodeId = it.string("vedtaksperiode_id"),
                                     tilstand = it.string("tilstand"),
-                                    endringstidspunkt = it.localDateTime("endringstidspunkt"),
+                                    endringstidspunkt = it.localDateTime("endringstidspunkt").withNano(it.int("endringstidspunkt_nanos")),
                                     antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
                             )
-                        }.asList
+                        }.asSingle
                 )
             }
-        }
+        }) {"Fant ikke påminnelse for vedtaksperiodeId=$vedtaksperiodeId" }
     }
 }

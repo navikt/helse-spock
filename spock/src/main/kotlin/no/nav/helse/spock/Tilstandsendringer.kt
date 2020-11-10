@@ -31,8 +31,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val event = TilstandsendringEventDto(packet)
-        lagreTilstandsendring(dataSource, event)
+        val event = TilstandsendringEventDto(packet).also { it.lagreTilstandsendring(dataSource) }
         context.send(JsonMessage.newMessage(mapOf(
             "@event_name" to "planlagt_påminnelse",
             "@opprettet" to LocalDateTime.now(),
@@ -40,7 +39,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
             "tilstand" to event.tilstand,
             "endringstidspunkt" to event.endringstidspunkt,
             "påminnelsetidspunkt" to event.nestePåminnelsetidspunkt(),
-            "er_avsluttet" to event.erSluttilstand()
+            "er_avsluttet" to TilstandsendringEventDto.erSluttilstand(event.tilstand)
         )).toJson())
     }
 
@@ -53,15 +52,28 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         val endringstidspunkt = packet["@opprettet"].asLocalDateTime()
         val originalJson = packet.toJson()
 
-        fun erSluttilstand() = tilstand in listOf(
-            "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
-            "AVSLUTTET", "TIL_INFOTRYGD"
-        )
-
+        fun lagreTilstandsendring(dataSource: DataSource) {
+            lagreTilstandsendring(
+                dataSource,
+                aktørId,
+                fødselsnummer,
+                organisasjonsnummer,
+                vedtaksperiodeId,
+                tilstand,
+                endringstidspunkt,
+                nestePåminnelsetidspunkt(),
+                originalJson
+            )
+        }
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
             private val åpningstiderOppdragUR = LocalTime.of(7, 0)..LocalTime.of(19, 59, 59)
+
+            fun erSluttilstand(tilstand: String) = tilstand in listOf(
+                "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
+                "AVSLUTTET", "TIL_INFOTRYGD"
+            )
 
             fun nestePåminnelsetidspunkt(tilstand: String, endringstidspunkt: LocalDateTime, antallGangerPåminnet: Int) =
                 when (tilstand) {
