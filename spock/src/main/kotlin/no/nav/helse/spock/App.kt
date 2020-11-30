@@ -26,6 +26,8 @@ fun launchApp(env: Map<String, String>) {
         Tilstandsendringer(this, dataSource)
         IkkePåminnelser(this, dataSource)
         Påminnelser(this, dataSource, schedule)
+        UtbetalingEndret(this, dataSource)
+        UtbetalingPåminnelser(this, dataSource, schedule)
     }.apply {
         register(object : RapidsConnection.StatusListener {
             override fun onStartup(rapidsConnection: RapidsConnection) {
