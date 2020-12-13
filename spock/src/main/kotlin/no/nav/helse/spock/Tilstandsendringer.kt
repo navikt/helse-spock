@@ -91,9 +91,9 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> {
                         when (endringstidspunkt.dayOfWeek) {
                             DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
-                                endringstidspunkt.plusHours(8)
+                                endringstidspunkt.plusHours(12)
                             else ->
-                                endringstidspunkt.plusHours(3)
+                                endringstidspunkt.plusHours(6)
                         }.plussTilfeldigeMinutter(60)
                     }
                     "AVVENTER_GAP",
