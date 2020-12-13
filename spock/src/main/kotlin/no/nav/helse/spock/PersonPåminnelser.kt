@@ -52,13 +52,18 @@ class PersonPåminnelser(
         val stmt = """
             SELECT fnr,aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now()
         """
-        return using(sessionOf(dataSource)) {
-            it.run(queryOf(stmt).map { row ->
-                Pair(
-                        row.string("fnr").padStart(11, '0'),
-                        row.string("aktor_id")
-                )
-            }.asList)
+        val personer = mutableListOf<Long>()
+        return using(sessionOf(dataSource)) { session ->
+            session.run(queryOf(stmt).map { row ->
+                val fnr = row.long("fnr")
+                personer.add(fnr)
+                Pair(fnr.toString().padStart(11, '0'), row.string("aktor_id"))
+            }.asList).also {
+                session.run(queryOf("""
+                    UPDATE person SET neste_paminnelsetidspunkt = NULL
+                    WHERE fnr IN(${personer.joinToString { "?" }})
+                """, *personer.toTypedArray()).asExecute)
+            }
         }
     }
 
