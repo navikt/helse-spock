@@ -59,10 +59,12 @@ class PersonPåminnelser(
                 personer.add(fnr)
                 Pair(fnr.toString().padStart(11, '0'), row.string("aktor_id"))
             }.asList).also {
-                session.run(queryOf("""
-                    UPDATE person SET neste_paminnelsetidspunkt = NULL
-                    WHERE fnr IN(${personer.joinToString { "?" }})
-                """, *personer.toTypedArray()).asExecute)
+                if (personer.isNotEmpty()) {
+                    session.run(queryOf("""
+                        UPDATE person SET neste_paminnelsetidspunkt = NULL
+                        WHERE fnr IN(${personer.joinToString { "?" }})
+                    """, *personer.toTypedArray()).asExecute)
+                }
             }
         }
     }
