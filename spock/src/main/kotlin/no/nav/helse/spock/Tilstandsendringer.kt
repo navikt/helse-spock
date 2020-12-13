@@ -99,7 +99,14 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
-                    "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_HISTORIKK" -> {
+                        when (endringstidspunkt.dayOfWeek) {
+                            DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
+                                endringstidspunkt.plusHours(4)
+                            else ->
+                                endringstidspunkt.plusHours(1)
+                        }
+                    }
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING" -> {
