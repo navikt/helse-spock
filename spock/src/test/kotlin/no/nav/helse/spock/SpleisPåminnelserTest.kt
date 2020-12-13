@@ -104,21 +104,6 @@ internal class SpleisPåminnelserTest {
     }
 
     @Test
-    fun `påminnelser for tilfeldige minutter lagt til`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
-        val endringstidspunkt = LocalDateTime
-                .now()
-                .minusHours(24)
-
-        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
-
-        assertTrue(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(3)))
-        assertFalse(påminnelse.nestePåminnelsetidspunkt.isAfter(påminnelse.påminnelsestidspunkt.plusHours(4)))
-    }
-
-    @Test
     fun `retter tilstand når påminnelse var uaktuell`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"

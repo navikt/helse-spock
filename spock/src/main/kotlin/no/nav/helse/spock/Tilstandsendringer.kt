@@ -88,7 +88,14 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> endringstidspunkt.plusHours(3).plussTilfeldigeMinutter(60)
+                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP" -> {
+                        when (endringstidspunkt.dayOfWeek) {
+                            DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
+                                endringstidspunkt.plusHours(8)
+                            else ->
+                                endringstidspunkt.plusHours(3)
+                        }.plussTilfeldigeMinutter(60)
+                    }
                     "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
