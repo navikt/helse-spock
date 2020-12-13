@@ -85,6 +85,7 @@ class UtbetalingPåminnelser(
             private val antallGangerPåminnet: Int = 0
     ) {
         private fun lagre(dataSource: DataSource) {
+            lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
             @Language("PostgreSQL")
             val statement = """
             INSERT INTO utbetaling (id, aktor_id, fnr, orgnr, type, 

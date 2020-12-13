@@ -1,8 +1,26 @@
 package no.nav.helse.spock
 
 import kotliquery.*
+import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import javax.sql.DataSource
+
+internal fun lagrePerson(dataSource: DataSource, fødselsnummer: String, aktørId: String, tidsstempel: LocalDateTime) {
+    @Language("PostgreSQL")
+    val statement = """
+        INSERT INTO person (fnr, aktor_id, siste_aktivitet) VALUES (:fnr, :aktor, :siste_aktivitet)
+        ON CONFLICT (fnr) DO 
+            UPDATE SET siste_aktivitet = excluded.siste_aktivitet
+            WHERE person.siste_aktivitet < excluded.siste_aktivitet
+    """
+    using(sessionOf(dataSource)) {
+        it.run(queryOf(statement, mapOf(
+            "fnr" to fødselsnummer.toLong(),
+            "aktor" to aktørId.toLong(),
+            "siste_aktivitet" to tidsstempel
+        )).asExecute)
+    }
+}
 
 internal fun lagreTilstandsendring(
     dataSource: DataSource,
@@ -15,6 +33,7 @@ internal fun lagreTilstandsendring(
     nestePåminnelsetidspunkt: LocalDateTime,
     originalJson: String
 ) {
+    lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
     if (Tilstandsendringer.TilstandsendringEventDto.erSluttilstand(tilstand)) slettPåminnelse(dataSource, vedtaksperiodeId)
     else using(sessionOf(dataSource)) {
         it.run(
