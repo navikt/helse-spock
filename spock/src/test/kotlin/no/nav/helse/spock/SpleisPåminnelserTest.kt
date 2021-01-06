@@ -45,7 +45,7 @@ internal class SpleisPåminnelserTest {
             Tilbakerulling(this, dataSource)
             Tilstandsendringer(this, dataSource)
             IkkePåminnelser(this, dataSource)
-            Påminnelser(this, dataSource, Duration.ofMillis(1))
+            Påminnelser(this, dataSource, OppgaveMakstidPåminnelseDao(dataSource), Duration.ofMillis(1))
         }
     }
 
