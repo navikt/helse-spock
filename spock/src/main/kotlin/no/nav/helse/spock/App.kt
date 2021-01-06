@@ -16,6 +16,7 @@ fun launchApp(env: Map<String, String>) {
     val dataSource = dataSourceBuilder.getDataSource()
     val schedule = env["PAMINNELSER_SCHEDULE_SECONDS"]?.let { Duration.ofSeconds(it.toLong()) }
         ?: Duration.ofMinutes(1)
+    val oppgaveMakstidPåminnelseDao = OppgaveMakstidPåminnelseDao(dataSource)
 
     log.info("Lager påminnelser ca. hver ${schedule.toSeconds()} sekunder")
 
@@ -25,10 +26,11 @@ fun launchApp(env: Map<String, String>) {
         BogusPåminnelser(this, dataSource)
         Tilstandsendringer(this, dataSource)
         IkkePåminnelser(this, dataSource)
-        Påminnelser(this, dataSource, schedule)
+        Påminnelser(this, dataSource, oppgaveMakstidPåminnelseDao, schedule)
         UtbetalingEndret(this, dataSource)
         UtbetalingPåminnelser(this, dataSource, schedule)
         PersonPåminnelser(this, dataSource, schedule)
+        OppgavePåminnelser(this, oppgaveMakstidPåminnelseDao)
     }.apply {
         register(object : RapidsConnection.StatusListener {
             override fun onStartup(rapidsConnection: RapidsConnection) {
@@ -37,6 +39,3 @@ fun launchApp(env: Map<String, String>) {
         })
     }.start()
 }
-
-
-
