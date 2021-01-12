@@ -15,7 +15,13 @@ class OppgavePåminnelser(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireAny("@event_name", listOf("oppgave_opprettet", "oppgave_oppdatert")) }
+            validate { it.demandValue("@event_name", "oppgave_opprettet") }
+            validate { it.requireKey("oppgaveId", "@id", "fødselsnummer", "status") }
+            validate { it.require("makstid", JsonNode::asLocalDateTime) }
+        }.register(this)
+
+        River(rapidsConnection).apply {
+            validate { it.demandValue("@event_name", "oppgave_oppdatert") }
             validate { it.requireKey("oppgaveId", "@id", "fødselsnummer", "status") }
             validate { it.require("makstid", JsonNode::asLocalDateTime) }
         }.register(this)
