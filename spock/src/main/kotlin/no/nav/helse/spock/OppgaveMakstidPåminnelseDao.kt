@@ -15,6 +15,8 @@ class OppgaveMakstidPåminnelseDao(private val dataSource: DataSource) {
     ) {
             val påminnelse = finnPåminnelse(oppgaveId)
 
+            if (påminnelse == null && status != "AvventerSaksbehandler") return
+
             if (påminnelse == null) {
                 opprettPåminnelse(oppgaveId, fødselsnummer, makstid, eventId)
             } else if (status == "Ferdigstilt" || status == "MakstidOppnådd" || status == "Invalidert") {
