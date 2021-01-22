@@ -62,7 +62,7 @@ internal class SpleisPåminnelserTest {
     @Test
     fun `lager påminnelser`() {
         val vedtaksperiodeId = UUID.randomUUID()
-        val tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP"
+        val tilstand = "AVVENTER_HISTORIKK"
         val endringstidspunkt = LocalDateTime
             .now()
             .minusSeconds(
