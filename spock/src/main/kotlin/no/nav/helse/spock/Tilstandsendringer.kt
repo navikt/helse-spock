@@ -88,7 +88,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_FERDIG_GAP",
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP" -> {
@@ -99,7 +99,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                                 endringstidspunkt.plusHours(6)
                         }.plussTilfeldigeMinutter(60)
                     }
-                    "AVVENTER_GAP",
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
                     "AVVENTER_ARBEIDSGIVERE",
