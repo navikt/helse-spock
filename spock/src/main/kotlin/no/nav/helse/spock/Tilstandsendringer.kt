@@ -72,7 +72,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
             fun erSluttilstand(tilstand: String) = tilstand in listOf(
                 "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
-                "AVSLUTTET", "TIL_INFOTRYGD"
+                "AVSLUTTET",
+                "TIL_INFOTRYGD"
             )
 
             fun nestePåminnelsetidspunkt(tilstand: String, endringstidspunkt: LocalDateTime, antallGangerPåminnet: Int) =
@@ -91,7 +92,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
-                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP" -> {
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> {
                         when (endringstidspunkt.dayOfWeek) {
                             DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
                                 endringstidspunkt.plusHours(12)
