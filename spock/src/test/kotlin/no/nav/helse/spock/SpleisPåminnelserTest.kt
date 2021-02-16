@@ -42,7 +42,7 @@ internal class SpleisPåminnelserTest {
         dataSource = dsbuilder.getDataSource()
 
         rapid = TestRapid().apply {
-            Tilbakerulling(this, dataSource)
+            Forkastelser(this, dataSource)
             Tilstandsendringer(this, dataSource)
             IkkePåminnelser(this, dataSource)
             Påminnelser(this, dataSource, OppgaveMakstidPåminnelseDao(dataSource), Duration.ofMillis(1))
@@ -99,7 +99,7 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, "AVVENTER_INNTEKTSMELDING_FERDIG_GAP", LocalDate.EPOCH.atStartOfDay()))
         assertEquals(1, hentAntallPåminnelser(vedtaksperiodeId))
 
-        rapid.sendTestMessage(vedtaksperiodeSlettet(vedtaksperiodeId))
+        rapid.sendTestMessage(vedtaksperiodeForkastet(vedtaksperiodeId))
         assertEquals(0, hentAntallPåminnelser(vedtaksperiodeId))
     }
 
@@ -141,11 +141,10 @@ internal class SpleisPåminnelserTest {
     }
 
     @Language("JSON")
-    private fun vedtaksperiodeSlettet(vedtaksperiodeId: UUID) = """{
-            "@event_name": "person_rullet_tilbake",
+    private fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) = """{
+            "@event_name": "vedtaksperiode_forkastet",
             "hendelseId": "030001BD-8FBA-4324-9725-D618CE5B83E9",
-            "fødselsnummer": "fnr",
-            "vedtaksperioderSlettet": ["A71468F7-6095-48BF-A9BB-ACF6497BEFAC", "$vedtaksperiodeId"]
+            "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
 
     private fun tilstandsendringsevent(
