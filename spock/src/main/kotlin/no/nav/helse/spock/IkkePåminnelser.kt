@@ -23,11 +23,11 @@ internal class IkkePåminnelser(
         }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLogg.error("kunne ikke forstå vedtaksperiode_ikke_påminnet: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val aktørId = packet["aktørId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val organisasjonsnummer = packet["organisasjonsnummer"].asText()

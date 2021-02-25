@@ -26,13 +26,13 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLog.error("kunne ikke forstå vedtaksperiode_endret: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val event = TilstandsendringEventDto(packet).also { it.lagreTilstandsendring(dataSource) }
-        context.send(JsonMessage.newMessage(mapOf(
+        context.publish(JsonMessage.newMessage(mapOf(
             "@event_name" to "planlagt_påminnelse",
             "@opprettet" to LocalDateTime.now(),
             "vedtaksperiodeId" to event.vedtaksperiodeId,

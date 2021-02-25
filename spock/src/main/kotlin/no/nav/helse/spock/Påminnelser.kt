@@ -1,6 +1,7 @@
 package no.nav.helse.spock
 
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.slf4j.LoggerFactory
@@ -27,14 +28,14 @@ class Påminnelser(rapidsConnection: RapidsConnection,
         River(rapidsConnection).register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
         lagOppgaveMakstidPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
 
-    private fun lagPåminnelser(context: RapidsConnection.MessageContext) {
+    private fun lagPåminnelser(context: MessageContext) {
         val påminnelser = hentPåminnelser(dataSource)
         if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} påminnelser fra db")
@@ -44,11 +45,11 @@ class Påminnelser(rapidsConnection: RapidsConnection,
         }.onEach { (_, påminnelse) ->
             secureLogger.info("Produserer $påminnelse")
         }.forEach { (key, value) ->
-            context.send(key, value)
+            context.publish(key, value)
         }
     }
 
-    private fun lagOppgaveMakstidPåminnelser(context: RapidsConnection.MessageContext) {
+    private fun lagOppgaveMakstidPåminnelser(context: MessageContext) {
         val påminnelser = oppgaveMakstidPåminnelseDao.hentPåminnelser()
         if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} oppgavemakstidpåminnelser fra db")
@@ -58,7 +59,7 @@ class Påminnelser(rapidsConnection: RapidsConnection,
         }.onEach { (_, påminnelse) ->
             secureLogger.info("Produserer $påminnelse")
         }.forEach { (key, value) ->
-            context.send(key, value)
+            context.publish(key, value)
         }
     }
 

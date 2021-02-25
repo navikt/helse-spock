@@ -3,10 +3,7 @@ package no.nav.helse.spock
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.rapids_rivers.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -34,13 +31,13 @@ class UtbetalingPåminnelser(
         River(rapidsConnection).register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
 
-    private fun lagPåminnelser(context: RapidsConnection.MessageContext) {
+    private fun lagPåminnelser(context: MessageContext) {
         val påminnelser = hentPåminnelser()
         if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} utbetalingpåminnelser fra db")
@@ -51,7 +48,7 @@ class UtbetalingPåminnelser(
     private fun hentPåminnelser(): List<Utbetalingpåminnelse> {
         @Language("PostgreSQL")
         val stmt = """
-            SELECT * FROM utbetaling 
+            SELECT * FROM utbetaling
             WHERE neste_paminnelsetidspunkt <= now()
         """
         return using(sessionOf(dataSource)) {
@@ -88,11 +85,11 @@ class UtbetalingPåminnelser(
             lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
             @Language("PostgreSQL")
             val statement = """
-            INSERT INTO utbetaling (id, aktor_id, fnr, orgnr, type, 
+            INSERT INTO utbetaling (id, aktor_id, fnr, orgnr, type,
                 status, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data)
             VALUES (:id, :aktorId, :fnr, :orgnr, CAST(:type as utbetaling_type), :status, :endringstidspunkt,
                 :endringstidspunktNanos, :nestePaminnelsetidspunkt, to_json(:data::json))
-            ON CONFLICT (id) DO UPDATE SET 
+            ON CONFLICT (id) DO UPDATE SET
                 status=EXCLUDED.status,
                 endringstidspunkt=EXCLUDED.endringstidspunkt,
                 endringstidspunkt_nanos=EXCLUDED.endringstidspunkt_nanos,
@@ -100,7 +97,7 @@ class UtbetalingPåminnelser(
                 antall_ganger_paminnet=0,
                 data=EXCLUDED.data,
                 opprettet=now()
-            WHERE (utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt) 
+            WHERE (utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt)
                 OR (utbetaling.endringstidspunkt = EXCLUDED.endringstidspunkt AND utbetaling.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)
         """
             using(sessionOf(dataSource)) {
@@ -122,7 +119,7 @@ class UtbetalingPåminnelser(
         private fun oppdater(dataSource: DataSource, tidspunkt: LocalDateTime) {
             @Language("PostgreSQL")
             val statement = """
-                UPDATE utbetaling SET 
+                UPDATE utbetaling SET
                     antall_ganger_paminnet = antall_ganger_paminnet + 1,
                     neste_paminnelsetidspunkt = :nestePaminnelsetidspunkt
                 WHERE id = :id
@@ -135,10 +132,10 @@ class UtbetalingPåminnelser(
             }
         }
 
-        internal fun send(context: RapidsConnection.MessageContext, dataSource: DataSource) {
+        internal fun send(context: MessageContext, dataSource: DataSource) {
             val now = LocalDateTime.now()
             oppdater(dataSource, now)
-            context.send(fødselsnummer, JsonMessage.newMessage(mapOf(
+            context.publish(fødselsnummer, JsonMessage.newMessage(mapOf(
                     "@id" to UUID.randomUUID(),
                     "@event_name" to "utbetalingpåminnelse",
                     "@opprettet" to "$now",

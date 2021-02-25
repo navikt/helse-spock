@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.intellij.lang.annotations.Language
@@ -33,13 +34,13 @@ class PersonPåminnelser(
         River(rapidsConnection).register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
 
-    private fun lagPåminnelser(context: RapidsConnection.MessageContext) {
+    private fun lagPåminnelser(context: MessageContext) {
         val påminnelser = hentPåminnelser()
         if (påminnelser.isEmpty()) return
         log.info("hentet ${påminnelser.size} personpåminnelser fra db")
@@ -69,9 +70,9 @@ class PersonPåminnelser(
         }
     }
 
-    private fun Pair<String, String>.send(context: RapidsConnection.MessageContext) {
+    private fun Pair<String, String>.send(context: MessageContext) {
         val now = LocalDateTime.now()
-        context.send(first, JsonMessage.newMessage(mapOf(
+        context.publish(first, JsonMessage.newMessage(mapOf(
                 "@id" to UUID.randomUUID(),
                 "@event_name" to "person_påminnelse",
                 "@opprettet" to "$now",

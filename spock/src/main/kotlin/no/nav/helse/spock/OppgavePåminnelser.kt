@@ -27,11 +27,11 @@ class OppgavePåminnelser(
         }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLog.error("kunne ikke forstå oppgave_opprettet: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val eventId = packet["@id"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val oppgaveId = packet["oppgaveId"].longValue()

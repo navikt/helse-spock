@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.0"
+    kotlin("jvm") version "1.4.30"
 }
 
-val junitJupiterVersion = "5.6.0"
+val junitJupiterVersion = "5.7.1"
 val jacksonVersion = "2.10.0"
 
 allprojects {
@@ -20,22 +20,22 @@ allprojects {
     }
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_14
-        targetCompatibility = JavaVersion.VERSION_14
+        sourceCompatibility = JavaVersion.VERSION_15
+        targetCompatibility = JavaVersion.VERSION_15
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "14"
+        kotlinOptions.jvmTarget = "15"
     }
 
     tasks.named<KotlinCompile>("compileTestKotlin") {
-        kotlinOptions.jvmTarget = "14"
+        kotlinOptions.jvmTarget = "15"
     }
 
     tasks.withType<Test> {
         useJUnitPlatform()
         testLogging {
-            events("passed", "skipped", "failed")
+            events("skipped", "failed")
         }
     }
 
@@ -52,6 +52,11 @@ repositories {
 subprojects {
     repositories {
         mavenCentral()
+        maven ("https://jitpack.io")
+    }
+
+ ext {
+        set("junitJupiterVersion", junitJupiterVersion)
     }
 
     dependencies {

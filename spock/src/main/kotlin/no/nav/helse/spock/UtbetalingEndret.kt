@@ -37,11 +37,11 @@ class UtbetalingEndret(rapidsConnection: RapidsConnection,
         }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLog.error("kunne ikke forstå utbetaling_endret: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         UtbetalingPåminnelser.Utbetalingpåminnelse.opprett(packet, dataSource)
     }
 }

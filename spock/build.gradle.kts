@@ -1,8 +1,8 @@
-val junitJupiterVersion = "5.6.2"
+val junitJupiterVersion: String by project
 val mainClass = "no.nav.helse.spock.AppKt"
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:fa839faa1c")
+    implementation("com.github.navikt:rapids-and-rivers:1.a77261b")
 
     implementation("org.flywaydb:flyway-core:6.5.0")
     implementation("com.zaxxer:HikariCP:3.4.5")
