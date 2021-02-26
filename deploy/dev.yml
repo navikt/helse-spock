@@ -32,7 +32,7 @@ spec:
     path: /metrics
   webproxy: true
   kafka:
-    pool: nav-prod
+    pool: nav-dev
   secureLogs:
     enabled: true
   vault:
