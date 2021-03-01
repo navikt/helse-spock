@@ -67,10 +67,8 @@ class OppgaveMakstidPåminnelseDao(private val dataSource: DataSource) {
             tx.run(
                     queryOf("SELECT * FROM oppgave_makstid_paminnelse WHERE now() > neste_paminnelsetidspunkt;")
                             .map(::toDTO).asList
-            ).also { påminnelser ->
-                påminnelser.forEach {
-                    oppdaterTidspunkt(tx, it)
-                }
+            ).onEach {
+                oppdaterTidspunkt(tx, it)
             }
         }
     }
