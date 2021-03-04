@@ -41,6 +41,8 @@ spec:
       - mountPath: /var/run/secrets/nais.io/service_user
         kvPath: /serviceuser/data/prod/srvspock
   env:
+  - name: PAMINNELSER_SCHEDULE_SECONDS
+    value: "172800"
   - name: KAFKA_PREFER_ON_PREM
     value: "true"
   - name: KAFKA_BOOTSTRAP_SERVERS
