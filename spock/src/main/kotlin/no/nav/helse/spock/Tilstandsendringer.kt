@@ -103,6 +103,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     }
                     "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
                     "AVVENTER_VILKÅRSPRØVING_GAP",
+                    "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_HISTORIKK" -> {
                         when (endringstidspunkt.dayOfWeek) {
