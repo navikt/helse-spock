@@ -103,8 +103,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                                 endringstidspunkt.plusHours(6)
                         }.plussTilfeldigeMinutter(60)
                     }
-                    "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD",
-                    "AVVENTER_VILKÅRSPRØVING_GAP",
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_HISTORIKK" -> {
@@ -141,8 +139,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     }
                     "START",
                     "UTBETALING_FEILET",
-                    "AVSLUTTET_UTEN_UTBETALING",
-                    "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    "AVSLUTTET_UTEN_UTBETALING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                 }
         }
