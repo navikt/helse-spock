@@ -45,7 +45,7 @@ internal class SpleisPåminnelserTest {
             Forkastelser(this, dataSource)
             Tilstandsendringer(this, dataSource)
             IkkePåminnelser(this, dataSource)
-            Påminnelser(this, dataSource, OppgaveMakstidPåminnelseDao(dataSource), Duration.ofMillis(1))
+            Påminnelser(this, dataSource, Duration.ofMillis(1))
         }
     }
 

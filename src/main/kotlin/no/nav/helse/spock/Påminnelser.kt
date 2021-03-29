@@ -9,10 +9,11 @@ import java.time.Duration
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
-class Påminnelser(rapidsConnection: RapidsConnection,
-                  private val dataSource: DataSource,
-                  private val oppgaveMakstidPåminnelseDao: OppgaveMakstidPåminnelseDao,
-                  schedule: Duration) : River.PacketListener {
+class Påminnelser(
+    rapidsConnection: RapidsConnection,
+    private val dataSource: DataSource,
+    schedule: Duration
+) : River.PacketListener {
 
     private companion object {
         private val log = LoggerFactory.getLogger(Påminnelser::class.java)
@@ -31,7 +32,6 @@ class Påminnelser(rapidsConnection: RapidsConnection,
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
-        lagOppgaveMakstidPåminnelser(context)
         lastReportTime = LocalDateTime.now()
     }
 
@@ -48,19 +48,4 @@ class Påminnelser(rapidsConnection: RapidsConnection,
             context.publish(key, value)
         }
     }
-
-    private fun lagOppgaveMakstidPåminnelser(context: MessageContext) {
-        val påminnelser = oppgaveMakstidPåminnelseDao.hentPåminnelser()
-        if (påminnelser.isEmpty()) return
-        log.info("hentet ${påminnelser.size} oppgavemakstidpåminnelser fra db")
-        secureLogger.info("hentet ${påminnelser.size} oppgavemakstidpåminnelser fra db")
-        påminnelser.map {
-            it.fødselsnummer to it.toJson()
-        }.onEach { (_, påminnelse) ->
-            secureLogger.info("Produserer $påminnelse")
-        }.forEach { (key, value) ->
-            context.publish(key, value)
-        }
-    }
-
 }

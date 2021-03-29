@@ -6,65 +6,73 @@ plugins {
 
 val junitJupiterVersion = "5.7.1"
 val jacksonVersion = "2.10.0"
+val mainClass = "no.nav.helse.spock.AppKt"
 
-allprojects {
-    group = "no.nav.helse"
-    version = properties["version"] ?: "local-build"
+group = "no.nav.helse"
+version = properties["version"] ?: "local-build"
 
-    apply(plugin = "org.jetbrains.kotlin.jvm")
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io")
+}
 
-    dependencies {
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-    }
+dependencies {
+    implementation("com.github.navikt:rapids-and-rivers:1.a77261b")
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_15
-        targetCompatibility = JavaVersion.VERSION_15
-    }
+    implementation("org.flywaydb:flyway-core:6.5.0")
+    implementation("com.zaxxer:HikariCP:3.4.5")
+    implementation("no.nav:vault-jdbc:1.3.1")
+    implementation("com.github.seratch:kotliquery:1.3.1")
 
-    tasks.withType<KotlinCompile> {
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("org.awaitility:awaitility:4.0.3")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_15
+    targetCompatibility = JavaVersion.VERSION_15
+}
+
+tasks {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "15"
     }
 
-    tasks.named<KotlinCompile>("compileTestKotlin") {
+    named<KotlinCompile>("compileTestKotlin") {
         kotlinOptions.jvmTarget = "15"
     }
 
-    tasks.withType<Test> {
+    withType<Jar> {
+        archiveBaseName.set("app")
+
+        manifest {
+            attributes["Main-Class"] = mainClass
+            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
+        }
+
+        doLast {
+            configurations.runtimeClasspath.get().forEach {
+                val file = File("$buildDir/libs/${it.name}")
+                if (!file.exists())
+                    it.copyTo(file)
+            }
+        }
+    }
+
+    withType<Test> {
         useJUnitPlatform()
         testLogging {
             events("skipped", "failed")
         }
     }
 
-    tasks.withType<Wrapper> {
+    withType<Wrapper> {
         gradleVersion = "6.7.1"
-    }
-
-}
-
-repositories {
-    mavenCentral()
-}
-
-subprojects {
-    repositories {
-        mavenCentral()
-        maven ("https://jitpack.io")
-    }
-
- ext {
-        set("junitJupiterVersion", junitJupiterVersion)
-    }
-
-    dependencies {
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     }
 }
