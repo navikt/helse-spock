@@ -68,7 +68,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
-            private val åpningstiderOppdragUR = LocalTime.of(7, 0)..LocalTime.of(19, 59, 59)
+            private val åpningstiderOppdragUR = LocalTime.of(6, 0)..LocalTime.of(20, 59, 59)
 
             fun erSluttilstand(tilstand: String) = tilstand in listOf(
                 "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
@@ -99,9 +99,9 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> {
                         when (endringstidspunkt.dayOfWeek) {
                             DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
-                                endringstidspunkt.plusHours(12)
+                                endringstidspunkt.pussTilfeldigeTimer(8, 12)
                             else ->
-                                endringstidspunkt.plusHours(6)
+                                endringstidspunkt.pussTilfeldigeTimer(5, 8)
                         }.plussTilfeldigeMinutter(60)
                     }
                     "AVVENTER_VILKÅRSPRØVING",
@@ -147,4 +147,5 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
     }
 }
 
+private fun LocalDateTime.pussTilfeldigeTimer(min: Int, max: Int) = this.plusHours((min..max).random().toLong())
 private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) = if(minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())
