@@ -3,7 +3,7 @@ package no.nav.helse.spock
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.LoggerFactory
-import java.time.DayOfWeek
+import java.time.DayOfWeek.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -68,8 +68,6 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
-            private val åpningstiderOppdragUR = LocalTime.of(6, 0)..LocalTime.of(20, 59, 59)
-
             fun erSluttilstand(tilstand: String) = tilstand in listOf(
                 "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
                 "AVSLUTTET_UTEN_UTBETALING",
@@ -84,7 +82,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "MOTTATT_SYKMELDING_FERDIG_GAP",
                     "MOTTATT_SYKMELDING_UFERDIG_GAP" -> when (antallGangerPåminnet) {
                         0 -> LocalDateTime.now()
-                        else -> endringstidspunkt.pussTilfeldigeTimer(20, 24).plussTilfeldigeMinutter(60)
+                        else -> endringstidspunkt.plussTilfeldigeTimer(20, 24).plussTilfeldigeMinutter(60)
                     }
                     "AVVENTER_SØKNAD_FERDIG_GAP",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
@@ -99,56 +97,62 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
-                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> {
-                        when (endringstidspunkt.dayOfWeek) {
-                            DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
-                                endringstidspunkt.pussTilfeldigeTimer(8, 12)
-                            else ->
-                                endringstidspunkt.pussTilfeldigeTimer(5, 8)
-                        }.plussTilfeldigeMinutter(60)
-                    }
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
+                        (
+                                if (endringstidspunkt.erHelg()) endringstidspunkt.plussTilfeldigeTimer(8, 12)
+                                else endringstidspunkt.plussTilfeldigeTimer(5, 8)
+                        ).plussTilfeldigeMinutter(59)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_ARBEIDSGIVERE",
-                    "AVVENTER_HISTORIKK" -> {
-                        when (endringstidspunkt.dayOfWeek) {
-                            DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ->
-                                endringstidspunkt.plusHours(4)
-                            else ->
-                                endringstidspunkt.plusHours(1)
-                        }
-                    }
+                    "AVVENTER_HISTORIKK" ->
+                        if (endringstidspunkt.erHelg()) endringstidspunkt.plusHours(4)
+                        else endringstidspunkt.plusHours(1)
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
                     "TIL_UTBETALING",
-                    "AVVENTER_SIMULERING" -> {
-                        // påminn hver time innenfor åpningstid (man-fre 07:00-19:59), ellers vent til innenfor åpningstid
-                        val klslett = endringstidspunkt.toLocalTime()
-                        when (endringstidspunkt.dayOfWeek) {
-                            DayOfWeek.SATURDAY -> åpningstiderOppdragUR.start.atDate(endringstidspunkt.plusDays(2).toLocalDate())
-                            DayOfWeek.SUNDAY -> åpningstiderOppdragUR.start.atDate(endringstidspunkt.plusDays(1).toLocalDate())
-                            DayOfWeek.FRIDAY -> {
-                                when {
-                                    klslett > åpningstiderOppdragUR.endInclusive -> åpningstiderOppdragUR.start.atDate(endringstidspunkt.plusDays(3).toLocalDate())
-                                    klslett < åpningstiderOppdragUR.start -> åpningstiderOppdragUR.start.atDate(endringstidspunkt.toLocalDate())
-                                    else -> endringstidspunkt.plusHours(1)
-                                }
-                            }
-                            else -> {
-                                when {
-                                    klslett > åpningstiderOppdragUR.endInclusive -> åpningstiderOppdragUR.start.atDate(endringstidspunkt.plusDays(1).toLocalDate())
-                                    klslett < åpningstiderOppdragUR.start -> åpningstiderOppdragUR.start.atDate((endringstidspunkt.toLocalDate()))
-                                    else -> endringstidspunkt.plusHours(1)
-                                }
-                            }
-                        }
-                    }
+                    "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                 }
         }
+
+        private object OppdragUR {
+            // åpningstid oppdrag/ur (man-fre 06:00-20:59)
+            private val åpningstiderOppdragUR = LocalTime.of(6, 0)..LocalTime.of(20, 59, 59)
+
+            fun beregnPåminnelsetidspunkt(endringstidspunkt: LocalDateTime): LocalDateTime {
+                // påminn hver time innenfor åpningstid, ellers vent til innenfor åpningstid
+                if (innenforÅpningstid(endringstidspunkt)) return endringstidspunkt.plusHours(1)
+                return nesteÅpningsdagtidspunkt(endringstidspunkt)
+            }
+
+            // samme dag om vi er før åpningstid (og ukedag), neste mandag hvis ikke
+            private fun nesteÅpningsdagtidspunkt(endringstidspunkt: LocalDateTime): LocalDateTime {
+                val nesteÅpningsdag =
+                    if (endringstidspunkt.erHelg() || etterStengetid(endringstidspunkt)) endringstidspunkt.nesteUkedag()
+                    else endringstidspunkt.toLocalDate()
+                // spre påminnelsene litt utover morgentimene
+                return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).plussTilfeldigeTimer(0, 1).plussTilfeldigeMinutter(59)
+            }
+
+            private fun LocalDateTime.nesteUkedag() = this.plusDays(
+                when (this.dayOfWeek) {
+                    FRIDAY -> 3
+                    SATURDAY -> 2
+                    else -> 1
+                }
+            ).toLocalDate()
+
+            private fun etterStengetid(endringstidspunkt: LocalDateTime) =
+                endringstidspunkt.toLocalTime() > åpningstiderOppdragUR.endInclusive
+
+            private fun innenforÅpningstid(endringstidspunkt: LocalDateTime) =
+                !endringstidspunkt.erHelg() && endringstidspunkt.toLocalTime() in åpningstiderOppdragUR
+        }
     }
 }
 
-private fun LocalDateTime.pussTilfeldigeTimer(min: Int, max: Int) = this.plusHours((min..max).random().toLong())
+private fun LocalDateTime.erHelg() = this.dayOfWeek == SATURDAY || this.dayOfWeek == SUNDAY
+private fun LocalDateTime.plussTilfeldigeTimer(min: Int, max: Int) = this.plusHours((min..max).random().toLong())
 private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) = if(minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())
