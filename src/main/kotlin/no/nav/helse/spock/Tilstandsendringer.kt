@@ -72,6 +72,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
             fun erSluttilstand(tilstand: String) = tilstand in listOf(
                 "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
+                "AVSLUTTET_UTEN_UTBETALING",
                 "AVSLUTTET",
                 "TIL_INFOTRYGD"
             )
