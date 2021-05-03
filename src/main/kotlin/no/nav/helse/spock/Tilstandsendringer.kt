@@ -82,7 +82,10 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_FERDIG_GAP",
-                    "MOTTATT_SYKMELDING_UFERDIG_GAP",
+                    "MOTTATT_SYKMELDING_UFERDIG_GAP" -> when (antallGangerPåminnet) {
+                        0 -> LocalDateTime.now()
+                        else -> endringstidspunkt.pussTilfeldigeTimer(20, 24).plussTilfeldigeMinutter(60)
+                    }
                     "AVVENTER_SØKNAD_FERDIG_GAP",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
                     "AVVENTER_UFERDIG_GAP",
