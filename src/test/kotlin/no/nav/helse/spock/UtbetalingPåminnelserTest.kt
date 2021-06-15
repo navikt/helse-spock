@@ -4,12 +4,8 @@ import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -125,6 +121,16 @@ internal class UtbetalingPåminnelserTest {
         assertIngenPåminnelse(utbetalingId, status)
     }
 
+    @Test
+    fun `kan lagre utbetalinger av type revurdering`() {
+        val utbetalingId = UUID.randomUUID()
+        val type = "REVURDERING"
+        val status = "UTBETALT"
+        assertDoesNotThrow {
+            rapid.sendTestMessage(utbetalingEndret(utbetalingId, status = status, type = type))
+        }
+    }
+
     private fun assertPåminnelse(utbetalingId: UUID, status: String) {
         val meldinger = (0 until rapid.inspektør.size).map { rapid.inspektør.message(it) }
         assertTrue(meldinger.any {
@@ -149,7 +155,8 @@ internal class UtbetalingPåminnelserTest {
 
     private fun utbetalingEndret(
             utbetalingId: UUID,
-            status: String
+            status: String,
+            type: String = "UTBETALING"
     ): String {
         val now = LocalDateTime.now()
         val nestePåminnelsetidspunkt = nestePåminnelsetidspunkt(now, status)
@@ -165,7 +172,7 @@ internal class UtbetalingPåminnelserTest {
                         "fødselsnummer" to "01019000000",
                         "organisasjonsnummer" to "123456789",
                         "utbetalingId" to utbetalingId.toString(),
-                        "type" to "UTBETALING",
+                        "type" to type,
                         "gjeldendeStatus" to status,
                         "forrigeStatus" to "IKKE_UTBETALT"
                 )
