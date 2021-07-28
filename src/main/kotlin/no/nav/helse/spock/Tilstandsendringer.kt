@@ -104,11 +104,15 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                         ).plussTilfeldigeMinutter(59)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_ARBEIDSGIVERE",
+                    "AVVENTER_ARBEIDSGIVERE_REVURDERING",
+                    "AVVENTER_HISTORIKK_REVURDERING",
                     "AVVENTER_HISTORIKK" ->
                         if (endringstidspunkt.erHelg()) endringstidspunkt.plusHours(4)
                         else endringstidspunkt.plusHours(1)
+                    "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
                     "TIL_UTBETALING",
+                    "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
                     "UTBETALING_FEILET",
