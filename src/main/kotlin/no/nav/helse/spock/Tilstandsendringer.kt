@@ -112,7 +112,6 @@ class Tilstandsendringer(
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
-                    "AVVENTER_UTBETALINGSGRUNNLAG",
                     "REVURDERING_FEILET",
                     "TIL_ANNULLERING",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
@@ -121,6 +120,7 @@ class Tilstandsendringer(
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
+                    "AVVENTER_UTBETALINGSGRUNNLAG",
                     "AVVENTER_HISTORIKK" ->
                         if (endringstidspunkt.erHelg()) endringstidspunkt.plusHours(4)
                         else endringstidspunkt.plusHours(1)
@@ -132,7 +132,10 @@ class Tilstandsendringer(
                     "START",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
-                    else -> defaultIntervall(endringstidspunkt)
+                    else -> {
+                        sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
+                        defaultIntervall(endringstidspunkt)
+                    }
                 }
 
             private fun defaultIntervall(endringstidspunkt: LocalDateTime) = (
