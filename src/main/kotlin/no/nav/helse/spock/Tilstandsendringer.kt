@@ -130,8 +130,7 @@ class Tilstandsendringer(
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
-                    "UTBETALING_FEILET",
-                    "AVSLUTTET_UTEN_UTBETALING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    "UTBETALING_FEILET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> {
                         sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
                         defaultIntervall(endringstidspunkt)
