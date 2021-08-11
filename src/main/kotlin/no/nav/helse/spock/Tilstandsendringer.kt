@@ -132,7 +132,7 @@ class Tilstandsendringer(
                     "START",
                     "UTBETALING_FEILET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> {
-                        sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
+                        if (!erSluttilstand(tilstand)) sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
                         defaultIntervall(endringstidspunkt)
                     }
                 }
