@@ -9,8 +9,10 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
 
-class Tilstandsendringer(rapidsConnection: RapidsConnection,
-                         private val dataSource: DataSource) : River.PacketListener {
+class Tilstandsendringer(
+    rapidsConnection: RapidsConnection,
+    private val dataSource: DataSource
+) : River.PacketListener {
 
     private companion object {
         private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
@@ -20,8 +22,12 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
-            validate { it.requireKey("aktørId", "fødselsnummer",
-                "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand") }
+            validate {
+                it.requireKey(
+                    "aktørId", "fødselsnummer",
+                    "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand"
+                )
+            }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
         }.register(this)
     }
@@ -32,15 +38,19 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val event = TilstandsendringEventDto(packet).also { it.lagreTilstandsendring(dataSource) }
-        context.publish(JsonMessage.newMessage(mapOf(
-            "@event_name" to "planlagt_påminnelse",
-            "@opprettet" to LocalDateTime.now(),
-            "vedtaksperiodeId" to event.vedtaksperiodeId,
-            "tilstand" to event.tilstand,
-            "endringstidspunkt" to event.endringstidspunkt,
-            "påminnelsetidspunkt" to event.nestePåminnelsetidspunkt(),
-            "er_avsluttet" to TilstandsendringEventDto.erSluttilstand(event.tilstand)
-        )).toJson())
+        context.publish(
+            JsonMessage.newMessage(
+                mapOf(
+                    "@event_name" to "planlagt_påminnelse",
+                    "@opprettet" to LocalDateTime.now(),
+                    "vedtaksperiodeId" to event.vedtaksperiodeId,
+                    "tilstand" to event.tilstand,
+                    "endringstidspunkt" to event.endringstidspunkt,
+                    "påminnelsetidspunkt" to event.nestePåminnelsetidspunkt(),
+                    "er_avsluttet" to TilstandsendringEventDto.erSluttilstand(event.tilstand)
+                )
+            ).toJson()
+        )
     }
 
     class TilstandsendringEventDto(packet: JsonMessage) {
@@ -65,6 +75,7 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                 originalJson
             )
         }
+
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
@@ -75,7 +86,11 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                 "TIL_INFOTRYGD"
             )
 
-            fun nestePåminnelsetidspunkt(tilstand: String, endringstidspunkt: LocalDateTime, antallGangerPåminnet: Int) =
+            fun nestePåminnelsetidspunkt(
+                tilstand: String,
+                endringstidspunkt: LocalDateTime,
+                antallGangerPåminnet: Int
+            ) =
                 when (tilstand) {
                     "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
@@ -97,11 +112,11 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
+                    "AVVENTER_UTBETALINGSGRUNNLAG",
+                    "REVURDERING_FEILET",
+                    "TIL_ANNULLERING",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
-                        (
-                                if (endringstidspunkt.erHelg()) endringstidspunkt.plussTilfeldigeTimer(8, 12)
-                                else endringstidspunkt.plussTilfeldigeTimer(5, 8)
-                        ).plussTilfeldigeMinutter(59)
+                        defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
@@ -117,8 +132,13 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     "START",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
-                    else -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    else -> defaultIntervall(endringstidspunkt)
                 }
+
+            private fun defaultIntervall(endringstidspunkt: LocalDateTime) = (
+                    if (endringstidspunkt.erHelg()) endringstidspunkt.plussTilfeldigeTimer(8, 12)
+                    else endringstidspunkt.plussTilfeldigeTimer(5, 8)
+                    ).plussTilfeldigeMinutter(59)
         }
 
         private object OppdragUR {
@@ -137,7 +157,8 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
                     if (endringstidspunkt.erHelg() || etterStengetid(endringstidspunkt)) endringstidspunkt.nesteUkedag()
                     else endringstidspunkt.toLocalDate()
                 // spre påminnelsene litt utover morgentimene
-                return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).plussTilfeldigeTimer(0, 1).plussTilfeldigeMinutter(59)
+                return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).plussTilfeldigeTimer(0, 1)
+                    .plussTilfeldigeMinutter(59)
             }
 
             private fun LocalDateTime.nesteUkedag() = this.plusDays(
@@ -159,4 +180,5 @@ class Tilstandsendringer(rapidsConnection: RapidsConnection,
 
 private fun LocalDateTime.erHelg() = this.dayOfWeek == SATURDAY || this.dayOfWeek == SUNDAY
 private fun LocalDateTime.plussTilfeldigeTimer(min: Int, max: Int) = this.plusHours((min..max).random().toLong())
-private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) = if(minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())
+private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) =
+    if (minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())
