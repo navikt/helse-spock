@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.31"
+    kotlin("jvm") version "1.5.30"
 }
 
-val junitJupiterVersion = "5.7.1"
-val jacksonVersion = "2.10.0"
+val junitJupiterVersion = "5.8.0"
+val jacksonVersion = "2.12.5"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 group = "no.nav.helse"
@@ -17,15 +17,15 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:1.a77261b")
+    implementation("com.github.navikt:rapids-and-rivers:2021.09.20-10.35.521fa818c5dd")
 
-    implementation("org.flywaydb:flyway-core:6.5.0")
-    implementation("com.zaxxer:HikariCP:3.4.5")
-    implementation("no.nav:vault-jdbc:1.3.1")
-    implementation("com.github.seratch:kotliquery:1.3.1")
+    implementation("org.flywaydb:flyway-core:7.14.1")
+    implementation("com.zaxxer:HikariCP:5.0.0")
+    implementation("no.nav:vault-jdbc:1.3.7")
+    implementation("com.github.seratch:kotliquery:1.6.0")
 
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
-    testImplementation("org.awaitility:awaitility:4.0.3")
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4")
+    testImplementation("org.awaitility:awaitility:4.1.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
@@ -33,17 +33,17 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
 }
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "15"
+        kotlinOptions.jvmTarget = "16"
     }
 
     named<KotlinCompile>("compileTestKotlin") {
-        kotlinOptions.jvmTarget = "15"
+        kotlinOptions.jvmTarget = "16"
     }
 
     withType<Jar> {
@@ -73,6 +73,6 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "6.7.1"
+        gradleVersion = "7.2"
     }
 }
