@@ -130,6 +130,7 @@ class Tilstandsendringer(
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
+                    "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                     "UTBETALING_FEILET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> {
                         if (!erSluttilstand(tilstand)) sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
