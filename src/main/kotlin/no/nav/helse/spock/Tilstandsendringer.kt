@@ -117,6 +117,7 @@ class Tilstandsendringer(
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
                         defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
+                    "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
