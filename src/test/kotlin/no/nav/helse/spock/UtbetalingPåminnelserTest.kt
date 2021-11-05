@@ -3,19 +3,24 @@ package no.nav.helse.spock
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.sql.DataSource
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.slf4j.LoggerFactory
+import org.testcontainers.containers.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class UtbetalingPåminnelserTest {
@@ -26,16 +31,18 @@ internal class UtbetalingPåminnelserTest {
         logCollector.start()
     }
 
-    private lateinit var embeddedPostgres: EmbeddedPostgres
+    private val postgres = PostgreSQLContainer<Nothing>("postgres:13")
     private lateinit var rapid: TestRapid
     private lateinit var dataSource: DataSource
 
     @BeforeAll
     fun `start postgres`() {
-        embeddedPostgres = EmbeddedPostgres.builder().start()
+        postgres.start()
         val dsbuilder = DataSourceBuilder(
             mapOf(
-                "DATABASE_JDBC_URL" to embeddedPostgres.getJdbcUrl("postgres", "postgres")
+                "DATABASE_JDBC_URL" to postgres.jdbcUrl,
+                "DATABASE_USERNAME" to postgres.username,
+                "DATABASE_PASSWORD" to postgres.password,
             )
         )
 
@@ -45,7 +52,7 @@ internal class UtbetalingPåminnelserTest {
 
     @AfterAll
     fun `stop postgres`() {
-        embeddedPostgres.close()
+        postgres.stop()
     }
 
     @BeforeEach
