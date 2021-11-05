@@ -1,6 +1,12 @@
 package no.nav.helse.spock
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.util.*
+import java.util.concurrent.TimeUnit
+import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -9,32 +15,28 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.*
-import java.util.concurrent.TimeUnit
-import javax.sql.DataSource
+import org.testcontainers.containers.PostgreSQLContainer
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SpleisPåminnelserTest {
 
-    private lateinit var embeddedPostgres: EmbeddedPostgres
     private lateinit var rapid: TestRapid
     private lateinit var dataSource: DataSource
+    private val postgres = PostgreSQLContainer<Nothing>("postgres:13")
 
     @BeforeAll
     fun `start postgres`() {
-        embeddedPostgres = EmbeddedPostgres.builder().start()
+        postgres.start()
         val dsbuilder = DataSourceBuilder(
             mapOf(
-                "DATABASE_JDBC_URL" to embeddedPostgres.getJdbcUrl("postgres", "postgres")
+                "DATABASE_JDBC_URL" to postgres.jdbcUrl,
+                "DATABASE_USERNAME" to postgres.username,
+                "DATABASE_PASSWORD" to postgres.password,
             )
         )
 
@@ -51,7 +53,7 @@ internal class SpleisPåminnelserTest {
 
     @AfterAll
     fun `stop postgres`() {
-        embeddedPostgres.close()
+        postgres.stop()
     }
 
     @BeforeEach
@@ -96,7 +98,13 @@ internal class SpleisPåminnelserTest {
     @Test
     fun `sletter påminnelser når en vedtaksperiode blir slettet`() {
         val vedtaksperiodeId = UUID.randomUUID()
-        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, "AVVENTER_INNTEKTSMELDING_FERDIG_GAP", LocalDate.EPOCH.atStartOfDay()))
+        rapid.sendTestMessage(
+            tilstandsendringsevent(
+                vedtaksperiodeId,
+                "AVVENTER_INNTEKTSMELDING_FERDIG_GAP",
+                LocalDate.EPOCH.atStartOfDay()
+            )
+        )
         assertEquals(1, hentAntallPåminnelser(vedtaksperiodeId))
 
         rapid.sendTestMessage(vedtaksperiodeForkastet(vedtaksperiodeId))
@@ -135,7 +143,10 @@ internal class SpleisPåminnelserTest {
     }
 
     private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) { session ->
-        session.run(queryOf("SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;", vedtaksperiodeId.toString())
+        session.run(queryOf(
+            "SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;",
+            vedtaksperiodeId.toString()
+        )
             .map { it.long("vedtaksperiode_count") }
             .asSingle)
     }
@@ -184,23 +195,24 @@ internal class SpleisPåminnelserTest {
         return requireNotNull(using(sessionOf(dataSource)) { session ->
             session.transaction { tx ->
                 tx.run(
-                        queryOf(
-                                "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
-                                        "FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId.toString()
-                        ).map {
-                            PåminnelseDto(
-                                    id = it.string("id"),
-                                    aktørId = it.string("aktor_id"),
-                                    fødselsnummer = it.string("fnr"),
-                                    organisasjonsnummer = it.string("organisasjonsnummer"),
-                                    vedtaksperiodeId = it.string("vedtaksperiode_id"),
-                                    tilstand = it.string("tilstand"),
-                                    endringstidspunkt = it.localDateTime("endringstidspunkt").withNano(it.int("endringstidspunkt_nanos")),
-                                    antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
-                            )
-                        }.asSingle
+                    queryOf(
+                        "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                                "FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId.toString()
+                    ).map {
+                        PåminnelseDto(
+                            id = it.string("id"),
+                            aktørId = it.string("aktor_id"),
+                            fødselsnummer = it.string("fnr"),
+                            organisasjonsnummer = it.string("organisasjonsnummer"),
+                            vedtaksperiodeId = it.string("vedtaksperiode_id"),
+                            tilstand = it.string("tilstand"),
+                            endringstidspunkt = it.localDateTime("endringstidspunkt")
+                                .withNano(it.int("endringstidspunkt_nanos")),
+                            antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
+                        )
+                    }.asSingle
                 )
             }
-        }) {"Fant ikke påminnelse for vedtaksperiodeId=$vedtaksperiodeId" }
+        }) { "Fant ikke påminnelse for vedtaksperiodeId=$vedtaksperiodeId" }
     }
 }

@@ -24,7 +24,7 @@ dependencies {
     implementation("no.nav:vault-jdbc:1.3.7")
     implementation("com.github.seratch:kotliquery:1.6.0")
 
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4")
+    testImplementation("org.testcontainers:postgresql:1.16.2")
     testImplementation("org.awaitility:awaitility:4.1.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
