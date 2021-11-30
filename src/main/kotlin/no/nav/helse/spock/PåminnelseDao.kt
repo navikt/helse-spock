@@ -48,7 +48,7 @@ internal fun lagreTilstandsendring(
                         "   antall_ganger_paminnet=0, " +
                         "   data=EXCLUDED.data, " +
                         "   opprettet=now() " +
-                        "WHERE (paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt) " +
+                        "WHERE (paminnelse.tilstand != EXCLUDED.tilstand AND paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt) " +
                         "   OR (paminnelse.endringstidspunkt = EXCLUDED.endringstidspunkt AND paminnelse.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)",
                 aktørId,
                 fødselsnummer,

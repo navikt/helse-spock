@@ -48,6 +48,7 @@ internal class SpleisPåminnelserTest {
             Tilstandsendringer(this, dataSource)
             IkkePåminnelser(this, dataSource)
             Påminnelser(this, dataSource, Duration.ofMillis(1))
+            PersonAvstemminger(this, dataSource)
         }
     }
 
@@ -129,6 +130,23 @@ internal class SpleisPåminnelserTest {
     }
 
     @Test
+    fun `fikser tilstand fra avstemmingsresultat`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
+        val endringstidspunkt = LocalDateTime
+            .now()
+            .minusHours(24)
+        val nyttTidspunkt = LocalDateTime.now()
+        rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
+        rapid.sendTestMessage(avstemming(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
+
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+
+        assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
+        assertEquals("TIL_UTBETALING", påminnelse.tilstand)
+    }
+
+    @Test
     fun `Endrer ikke påminnelse dersom event om uaktuell påminnelse er eldre enn nåværende`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
@@ -171,6 +189,35 @@ internal class SpleisPåminnelserTest {
             "vedtaksperiodeId" to vedtaksperiodeId.toString(),
             "gjeldendeTilstand" to tilstand,
             "forrigeTilstand" to "START",
+            "@opprettet" to "$endringstidspunkt"
+        )
+    ).toJson()
+
+    private fun avstemming(
+        vedtaksperiodeId: UUID,
+        tilstand: String,
+        endringstidspunkt: LocalDateTime
+    ) = JsonMessage.newMessage(
+        mapOf(
+            "@event_name" to "person_avstemt",
+            "@id" to UUID.randomUUID().toString(),
+            "aktørId" to "1234567890123",
+            "fødselsnummer" to "01019000000",
+            "arbeidsgivere" to listOf(
+                mapOf(
+                    "organisasjonsnummer" to "123456789",
+                    "vedtaksperioder" to listOf(
+                        mapOf(
+                            "id" to vedtaksperiodeId.toString(),
+                            "tilstand" to tilstand,
+                            "tidsstempel" to "$endringstidspunkt"
+                        )
+                    ),
+                    "forkastedeVedtaksperioder" to emptyList<Map<String, Any>>(),
+                    "utbetalinger" to emptyList<Map<String, Any>>()
+
+                )
+            ),
             "@opprettet" to "$endringstidspunkt"
         )
     ).toJson()

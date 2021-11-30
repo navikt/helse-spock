@@ -81,7 +81,7 @@ class UtbetalingPåminnelser(
             private val data: String,
             private val antallGangerPåminnet: Int = 0
     ) {
-        private fun lagre(dataSource: DataSource) {
+        internal fun lagre(dataSource: DataSource) {
             lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
             @Language("PostgreSQL")
             val statement = """
@@ -97,7 +97,7 @@ class UtbetalingPåminnelser(
                 antall_ganger_paminnet=0,
                 data=EXCLUDED.data,
                 opprettet=now()
-            WHERE (utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt)
+            WHERE (utbetaling.status != EXCLUDED.status AND utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt)
                 OR (utbetaling.endringstidspunkt = EXCLUDED.endringstidspunkt AND utbetaling.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)
         """
             using(sessionOf(dataSource)) {
