@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.6.0"
 }
 
-val junitJupiterVersion = "5.8.0"
+val junitJupiterVersion = "5.8.1"
 val jacksonVersion = "2.12.5"
 val mainClass = "no.nav.helse.spock.AppKt"
 
@@ -17,9 +17,9 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2021.09.20-10.35.521fa818c5dd")
+    implementation("com.github.navikt:rapids-and-rivers:2021.11.29-21.57.443e21ff5a6c")
 
-    implementation("org.flywaydb:flyway-core:7.14.1")
+    implementation("org.flywaydb:flyway-core:8.0.2")
     implementation("com.zaxxer:HikariCP:5.0.0")
     implementation("no.nav:vault-jdbc:1.3.7")
     implementation("com.github.seratch:kotliquery:1.6.0")
