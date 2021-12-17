@@ -112,26 +112,26 @@ class Tilstandsendringer(
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
-                    "REVURDERING_FEILET",
                     "TIL_ANNULLERING",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
                         defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
-                    "AVVENTER_ARBEIDSGIVERE",
-                    "AVVENTER_ARBEIDSGIVERE_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
                     "AVVENTER_UTBETALINGSGRUNNLAG",
                     "AVVENTER_HISTORIKK" ->
                         if (endringstidspunkt.erHelg()) endringstidspunkt.plusHours(4)
                         else endringstidspunkt.plusHours(1)
                     "AVVENTER_GODKJENNING_REVURDERING",
+                    "AVVENTER_ARBEIDSGIVERE",
+                    "AVVENTER_ARBEIDSGIVERE_REVURDERING",
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
                     "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
+                    "REVURDERING_FEILET",
                     "UTBETALING_FEILET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> {
                         if (!erSluttilstand(tilstand)) sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
