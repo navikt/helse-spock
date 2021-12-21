@@ -133,9 +133,12 @@ class Tilstandsendringer(
                     "START",
                     "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                     "REVURDERING_FEILET",
-                    "UTBETALING_FEILET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    "UTBETALING_FEILET",
+                    "AVSLUTTET_UTEN_UTBETALING",
+                    "TIL_INFOTRYGD",
+                    "AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
                     else -> {
-                        if (!erSluttilstand(tilstand)) sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
+                        sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
                         defaultIntervall(endringstidspunkt)
                     }
                 }
