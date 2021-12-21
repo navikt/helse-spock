@@ -102,6 +102,7 @@ class Tilstandsendringer(
                     "AVVENTER_SØKNAD_FERDIG_GAP",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
                     "AVVENTER_UFERDIG_GAP",
+                    "AVVENTER_UFERDIG",
                     "AVVENTER_INNTEKTSMELDING_FERDIG_FORLENGELSE",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
                     "AVVENTER_UFERDIG_FORLENGELSE",
