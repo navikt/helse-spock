@@ -79,12 +79,7 @@ class Tilstandsendringer(
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
-            fun erSluttilstand(tilstand: String) = tilstand in listOf(
-                "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
-                "AVSLUTTET_UTEN_UTBETALING",
-                "AVSLUTTET",
-                "TIL_INFOTRYGD"
-            )
+            fun erSluttilstand(tilstand: String) = tilstand in listOf("AVSLUTTET", "TIL_INFOTRYGD")
 
             fun nestePåminnelsetidspunkt(
                 tilstand: String,
