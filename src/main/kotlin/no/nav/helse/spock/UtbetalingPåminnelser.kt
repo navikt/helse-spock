@@ -81,8 +81,22 @@ class UtbetalingPåminnelser(
             private val data: String,
             private val antallGangerPåminnet: Int = 0
     ) {
-        internal fun lagre(dataSource: DataSource) {
+        internal fun lagre(dataSource: DataSource, overskriv: Boolean = false) {
             lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
+            if (overskriv) return overskriv(dataSource)
+            overskrivHvisNyere(dataSource)
+        }
+
+        private fun overskrivHvisNyere(dataSource: DataSource) {
+            overskriv(dataSource, """(utbetaling.status != EXCLUDED.status AND utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt)
+                OR (utbetaling.endringstidspunkt = EXCLUDED.endringstidspunkt AND utbetaling.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)""")
+        }
+
+        private fun overskriv(dataSource: DataSource) {
+            overskriv(dataSource, """utbetaling.status != EXCLUDED.status""")
+        }
+
+        private fun overskriv(dataSource: DataSource, where: String) {
             @Language("PostgreSQL")
             val statement = """
             INSERT INTO utbetaling (id, aktor_id, fnr, orgnr, type,
@@ -97,21 +111,20 @@ class UtbetalingPåminnelser(
                 antall_ganger_paminnet=0,
                 data=EXCLUDED.data,
                 opprettet=now()
-            WHERE (utbetaling.status != EXCLUDED.status AND utbetaling.endringstidspunkt < EXCLUDED.endringstidspunkt)
-                OR (utbetaling.endringstidspunkt = EXCLUDED.endringstidspunkt AND utbetaling.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)
+            WHERE $where
         """
             using(sessionOf(dataSource)) {
                 it.run(queryOf(statement, mapOf(
-                        "id" to utbetalingId,
-                        "aktorId" to aktørId,
-                        "fnr" to fødselsnummer,
-                        "orgnr" to organisasjonsnummer,
-                        "type" to type,
-                        "status" to status,
-                        "endringstidspunkt" to endringstidspunkt.withNano(0),
-                        "endringstidspunktNanos" to endringstidspunktNanos,
-                        "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt(endringstidspunkt, status),
-                        "data" to data
+                    "id" to utbetalingId,
+                    "aktorId" to aktørId,
+                    "fnr" to fødselsnummer,
+                    "orgnr" to organisasjonsnummer,
+                    "type" to type,
+                    "status" to status,
+                    "endringstidspunkt" to endringstidspunkt.withNano(0),
+                    "endringstidspunktNanos" to endringstidspunktNanos,
+                    "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt(endringstidspunkt, status),
+                    "data" to data
                 )).asExecute)
             }
         }

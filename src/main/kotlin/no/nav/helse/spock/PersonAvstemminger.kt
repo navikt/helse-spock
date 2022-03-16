@@ -85,7 +85,7 @@ internal class PersonAvstemminger(
                     status = utbetaling.path("status").asText(),
                     endringstidspunkt = utbetaling.path("tidsstempel").asLocalDateTime(),
                     data = utbetaling.toString()
-                ).lagre(dataSource)
+                ).lagre(dataSource, overskriv = true)
             }
         }
 

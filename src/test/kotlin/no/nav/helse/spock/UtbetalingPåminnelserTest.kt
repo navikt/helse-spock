@@ -192,7 +192,7 @@ internal class UtbetalingPåminnelserTest {
         val now = LocalDateTime.now()
         val nestePåminnelsetidspunkt = nestePåminnelsetidspunkt(now, status)
         val endringstidspunkt = nestePåminnelsetidspunkt?.let {
-            now.minusSeconds(ChronoUnit.SECONDS.between(now, nestePåminnelsetidspunkt))
+            now.minusSeconds(60 + ChronoUnit.SECONDS.between(now, nestePåminnelsetidspunkt))
         } ?: now
 
         return JsonMessage.newMessage(
