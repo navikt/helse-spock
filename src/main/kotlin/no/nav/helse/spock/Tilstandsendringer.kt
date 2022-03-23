@@ -8,6 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
+import kotlin.math.abs
 
 class Tilstandsendringer(
     rapidsConnection: RapidsConnection,
@@ -91,8 +92,8 @@ class Tilstandsendringer(
                     "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
                     "MOTTATT_SYKMELDING_FERDIG_GAP",
                     "MOTTATT_SYKMELDING_UFERDIG_GAP" -> when (antallGangerPåminnet) {
-                        0 -> LocalDateTime.now()
-                        else -> endringstidspunkt.plussTilfeldigeTimer(20, 24).plussTilfeldigeMinutter(60)
+                        0 -> LocalDateTime.now() // for å trigge at vi henter infotrygdhistorikk på nyopprettede personer asap
+                        else -> defaultIntervall(endringstidspunkt)
                     }
                     "AVVENTER_SØKNAD_FERDIG_GAP",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
@@ -104,24 +105,21 @@ class Tilstandsendringer(
                     "AVVENTER_SØKNAD_FERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
                     "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
                     "TIL_ANNULLERING",
-                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" ->
-                        defaultIntervall(endringstidspunkt)
+                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
                     "AVVENTER_UTBETALINGSGRUNNLAG",
-                    "AVVENTER_HISTORIKK" ->
-                        if (endringstidspunkt.erHelg()) endringstidspunkt.plusHours(4)
-                        else endringstidspunkt.plusHours(1)
+                    "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
-                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
@@ -138,10 +136,18 @@ class Tilstandsendringer(
                     }
                 }
 
-            private fun defaultIntervall(endringstidspunkt: LocalDateTime) = (
-                    if (endringstidspunkt.erHelg()) endringstidspunkt.plussTilfeldigeTimer(8, 12)
-                    else endringstidspunkt.plussTilfeldigeTimer(5, 8)
-                    ).plussTilfeldigeMinutter(59)
+            // velger et tilfeldig klokkeslett mellom 18:00 og 05:59 _neste_ dag.
+            // det betyr at om endringstidspunktet er 1. januar 23:59, og vi velger kl 01:00,
+            // vil påminnelsen fyre av 3. januar 01:00, IKKE 2.januar 01:00
+            internal fun defaultIntervall(endringstidspunkt: LocalDateTime): LocalDateTime {
+                val min = endringstidspunkt.plusHours(12)
+                val kveldstid = (18..23)
+                val nattestid = (0..5)
+                val tilfeldigTime = (nattestid.toList() + kveldstid.toList()).random()
+                val diff = abs( min.hour - tilfeldigTime)
+                val timer = if (tilfeldigTime in kveldstid) diff else (24 - diff)
+                return min.plusHours(timer.toLong()).withMinute((0..59).random())
+            }
         }
 
         private object OppdragUR {
