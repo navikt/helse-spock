@@ -108,7 +108,6 @@ class Tilstandsendringer(
                     "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
                     "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
-                    "TIL_ANNULLERING",
                     "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
@@ -121,6 +120,7 @@ class Tilstandsendringer(
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12).withMinute((0..59).random()) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
                     "TIL_UTBETALING",
+                    "TIL_ANNULLERING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
