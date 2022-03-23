@@ -119,7 +119,7 @@ class Tilstandsendringer(
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
-                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12).withMinute((0..59).random()) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
