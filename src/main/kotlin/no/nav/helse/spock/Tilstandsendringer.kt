@@ -99,6 +99,7 @@ class Tilstandsendringer(
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
                     "AVVENTER_UFERDIG_GAP",
                     "AVVENTER_UFERDIG",
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_INNTEKTSMELDING_FERDIG_FORLENGELSE",
                     "AVVENTER_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
                     "AVVENTER_UFERDIG_FORLENGELSE",
@@ -114,7 +115,6 @@ class Tilstandsendringer(
                     "AVVENTER_HISTORIKK_REVURDERING",
                     "AVVENTER_UTBETALINGSGRUNNLAG",
                     "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_ARBEIDSGIVERE",
                     "AVVENTER_ARBEIDSGIVERE_REVURDERING",
