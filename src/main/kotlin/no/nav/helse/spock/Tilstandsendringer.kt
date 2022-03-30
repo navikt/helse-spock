@@ -38,20 +38,7 @@ class Tilstandsendringer(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val event = TilstandsendringEventDto(packet).also { it.lagreTilstandsendring(dataSource) }
-        context.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    "@event_name" to "planlagt_påminnelse",
-                    "@opprettet" to LocalDateTime.now(),
-                    "vedtaksperiodeId" to event.vedtaksperiodeId,
-                    "tilstand" to event.tilstand,
-                    "endringstidspunkt" to event.endringstidspunkt,
-                    "påminnelsetidspunkt" to event.nestePåminnelsetidspunkt(),
-                    "er_avsluttet" to TilstandsendringEventDto.erSluttilstand(event.tilstand)
-                )
-            ).toJson()
-        )
+        TilstandsendringEventDto(packet).lagreTilstandsendring(dataSource)
     }
 
     class TilstandsendringEventDto(packet: JsonMessage) {
