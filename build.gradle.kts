@@ -5,7 +5,7 @@ plugins {
 }
 
 val junitJupiterVersion = "5.8.1"
-val jacksonVersion = "2.12.5"
+val jacksonVersion = "2.13.2"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 group = "no.nav.helse"
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2021.12.23-14.25.03a3f6fe7709")
+    implementation("com.github.navikt:rapids-and-rivers:2022.03.28-20.54.89f957fff8f2")
 
     implementation("org.flywaydb:flyway-core:8.0.2")
     implementation("com.zaxxer:HikariCP:5.0.0")
@@ -32,18 +32,13 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
-}
-
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "17"
     }
 
     named<KotlinCompile>("compileTestKotlin") {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "17"
     }
 
     withType<Jar> {
@@ -73,6 +68,6 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "7.2"
+        gradleVersion = "7.4.1"
     }
 }
