@@ -70,7 +70,14 @@ class NyTilstandsmaskinTest {
         }
         assertEquals(inntektsmeldingTilstander, hentPåminnelser(dataSource).toSet())
         flyway.target(MigrationVersion.fromVersion("39.1")).load().migrate()
-        assertEquals(setOf("AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"), hentPåminnelser(dataSource).toSet())
+        assertEquals(
+            listOf(
+                "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+                "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+                "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+                "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
+            ),
+            hentPåminnelser(dataSource))
     }
 
     private val avventerBlokkerendeTilstander = setOf(
@@ -96,9 +103,11 @@ class NyTilstandsmaskinTest {
         }
         assertEquals(avventerBlokkerendeTilstander, hentPåminnelser(dataSource).toSet())
         flyway.target(MigrationVersion.fromVersion("39.2")).load().migrate()
-        assertEquals(setOf("AVVENTER_BLOKKERENDE_PERIODE"), hentPåminnelser(dataSource).toSet())
+        assertEquals(
+            listOf("AVVENTER_BLOKKERENDE_PERIODE", "AVVENTER_BLOKKERENDE_PERIODE"),
+            hentPåminnelser(dataSource)
+        )
     }
-
 
     private val tilstanderUtenMottatSøknad = setOf(
         "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
