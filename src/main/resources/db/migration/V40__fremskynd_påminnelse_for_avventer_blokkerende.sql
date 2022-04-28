@@ -1,0 +1,1 @@
+UPDATE paminnelse SET neste_paminnelsetidspunkt = now() WHERE tilstand = 'AVVENTER_BLOKKERENDE_PERIODE';
