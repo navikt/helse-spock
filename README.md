@@ -4,7 +4,7 @@
 ## Beskrivelse
 Sender påminnelser for vedtaksperioder som er i en tilstand de kanskje kan komme seg ut av.
 
-Er også ansvarlig for avstemming av person-data, som ser ut til å bety at vi oppdaterer den informasjonen vi har i Spock med ny informasjon fra Spleis.
+Er også ansvarlig for å starte avstemming av persondata. Avstemming av persondata er at Spleis sender ut info om personer som resten av appene kan synke mot.
 
 ## Henvendelser
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.
