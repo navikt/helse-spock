@@ -81,7 +81,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
                     "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
                             "FROM paminnelse " +
                             "WHERE neste_paminnelsetidspunkt <= now()" +
-                            "LIMIT 5000"
+                            "LIMIT 20000"
                 ).map {
                     PåminnelseDto(
                         id = it.string("id"),
