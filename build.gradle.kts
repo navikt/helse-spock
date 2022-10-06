@@ -20,7 +20,7 @@ dependencies {
 
     implementation("org.flywaydb:flyway-core:8.5.13")
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("no.nav:vault-jdbc:1.3.9")
+    implementation("no.nav:vault-jdbc:1.3.10")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
     testImplementation("org.testcontainers:postgresql:1.17.5")
