@@ -4,8 +4,7 @@ plugins {
     kotlin("jvm") version "1.6.0"
 }
 
-val junitJupiterVersion = "5.8.1"
-val jacksonVersion = "2.13.2"
+val junitJupiterVersion = "5.9.1"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 group = "no.nav.helse"
@@ -17,15 +16,15 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2022.04.05-09.40.11a466d7ac70")
+    implementation("com.github.navikt:rapids-and-rivers:2022092314391663936769.9d5d33074875")
 
-    implementation("org.flywaydb:flyway-core:8.0.2")
-    implementation("com.zaxxer:HikariCP:5.0.0")
-    implementation("no.nav:vault-jdbc:1.3.7")
-    implementation("com.github.seratch:kotliquery:1.6.0")
+    implementation("org.flywaydb:flyway-core:8.5.13")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("no.nav:vault-jdbc:1.3.9")
+    implementation("com.github.seratch:kotliquery:1.9.0")
 
-    testImplementation("org.testcontainers:postgresql:1.16.2")
-    testImplementation("org.awaitility:awaitility:4.1.0")
+    testImplementation("org.testcontainers:postgresql:1.17.5")
+    testImplementation("org.awaitility:awaitility:4.2.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
