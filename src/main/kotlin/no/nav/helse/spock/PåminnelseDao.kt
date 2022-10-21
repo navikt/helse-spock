@@ -78,7 +78,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
         session.transaction { tx ->
             tx.run(
                 queryOf(
-                    "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                    "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt, skal_reberegnes " +
                             "FROM paminnelse " +
                             "WHERE neste_paminnelsetidspunkt <= now()" +
                             "LIMIT 20000"
@@ -91,7 +91,8 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
                         vedtaksperiodeId = it.string("vedtaksperiode_id"),
                         tilstand = it.string("tilstand"),
                         endringstidspunkt = it.localDateTime("endringstidspunkt"),
-                        antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
+                        antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1,
+                        ønskerReberegning = it.boolean("skal_reberegnes")
                     )
                 }.asList
             ).onEach {
@@ -104,7 +105,7 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
 private fun oppdaterPåminnelse(transactionalSession: TransactionalSession, påminnelse: PåminnelseDto) {
     transactionalSession.run(
         queryOf(
-            "UPDATE paminnelse SET neste_paminnelsetidspunkt = ?, antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=?::BIGINT",
+            "UPDATE paminnelse SET skal_reberegnes=false, neste_paminnelsetidspunkt = ?, antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=?::BIGINT",
             påminnelse.nestePåminnelsetidspunkt,
             påminnelse.id
         ).asExecute

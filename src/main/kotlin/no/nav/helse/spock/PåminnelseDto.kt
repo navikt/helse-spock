@@ -13,7 +13,9 @@ class PåminnelseDto(val id: String,
                     val vedtaksperiodeId: String,
                     val tilstand: String,
                     val endringstidspunkt: LocalDateTime,
-                    val antallGangerPåminnet: Int) {
+                    val antallGangerPåminnet: Int,
+                    val ønskerReberegning: Boolean = false
+) {
 
     val påminnelsestidspunkt = LocalDateTime.now()
     val nestePåminnelsetidspunkt = Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(tilstand, påminnelsestidspunkt, antallGangerPåminnet)
@@ -36,6 +38,7 @@ class PåminnelseDto(val id: String,
         "antallGangerPåminnet" to antallGangerPåminnet,
         "påminnelsestidspunkt" to påminnelsestidspunkt,
         "nestePåminnelsestidspunkt" to nestePåminnelsetidspunkt,
+        "ønskerReberegning" to ønskerReberegning,
         "timeout_første_påminnelse" to timeout
     )).toJson()
 
