@@ -51,7 +51,7 @@ class PersonPåminnelser(
     private fun hentPåminnelser(): List<Pair<String, String>> {
         @Language("PostgreSQL")
         val stmt = """
-            SELECT fnr,aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 5000
+            SELECT fnr,aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000
         """
         val personer = mutableListOf<Long>()
         return using(sessionOf(dataSource)) { session ->
