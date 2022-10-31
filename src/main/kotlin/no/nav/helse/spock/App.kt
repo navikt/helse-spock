@@ -15,7 +15,7 @@ fun main() {
     // midlertidig fiks for å skrive om evt. lange miljøvariabler til korte
     env.keys.toList().forEach { key ->
         if (key.startsWith("NAIS_DATABASE_SPOCK_SPOCK_")) {
-            val newKey = key.replace("NAIS_DATABASE_SPOCK_SPOCK_DATABASE_", "DATABASE_")
+            val newKey = key.replace("NAIS_DATABASE_SPOCK_SPOCK_", "DATABASE_")
             env[newKey] = env[key]
         }
     }
