@@ -12,13 +12,6 @@ fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { t, e ->
         log.error("{}", e.message, e)
     }
-    // midlertidig fiks for å skrive om evt. lange miljøvariabler til korte
-    env.keys.toList().forEach { key ->
-        if (key.startsWith("NAIS_DATABASE_SPOCK_SPOCK_")) {
-            val newKey = key.replace("NAIS_DATABASE_SPOCK_SPOCK_", "DATABASE_")
-            env[newKey] = env[key]
-        }
-    }
     launchApp(env)
 }
 
