@@ -2,11 +2,9 @@ package no.nav.helse.spock
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import javax.sql.DataSource
 
 // Understands how to create a data source from environment variables
 internal class DataSourceBuilder(env: Map<String, String>) {

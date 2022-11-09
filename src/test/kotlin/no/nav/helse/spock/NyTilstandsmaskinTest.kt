@@ -31,7 +31,7 @@ class NyTilstandsmaskinTest {
         )
 
         dataSource = dsbuilder.getDataSource()
-        flyway = Flyway.configure().dataSource(dataSource)
+        flyway = Flyway.configure().dataSource(dataSource).cleanDisabled(false)
     }
 
     @AfterEach

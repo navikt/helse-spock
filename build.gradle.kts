@@ -18,9 +18,9 @@ repositories {
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:2022092314391663936769.9d5d33074875")
 
-    implementation("org.flywaydb:flyway-core:8.5.13")
+    implementation("org.flywaydb:flyway-core:9.7.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("no.nav:vault-jdbc:1.3.10")
+    implementation("org.postgresql:postgresql:42.5.0")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
     testImplementation("org.testcontainers:postgresql:1.17.5")
