@@ -39,7 +39,7 @@ internal fun lagreTilstandsendring(
         it.run(
             queryOf(
                 "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, (to_json(?::json))) " +
+                        "VALUES (:aktorId, :fodselsnummer, :organisasjonsnummer, :vedtaksperiodeId, :tilstand, :endringstidspunkt, :endringstidspunktNano, :nestePaminnelsetidspunkt, (to_json(:originalJson::json))) " +
                         "ON CONFLICT(vedtaksperiode_id) do " +
                         "UPDATE SET tilstand=EXCLUDED.tilstand, " +
                         "   endringstidspunkt=EXCLUDED.endringstidspunkt, " +
@@ -50,15 +50,15 @@ internal fun lagreTilstandsendring(
                         "   opprettet=now() " +
                         "WHERE (paminnelse.tilstand != EXCLUDED.tilstand AND paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt) " +
                         "   OR (paminnelse.endringstidspunkt = EXCLUDED.endringstidspunkt AND paminnelse.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)",
-                aktørId,
-                fødselsnummer,
-                organisasjonsnummer,
-                vedtaksperiodeId,
-                tilstand,
-                endringstidspunkt,
-                endringstidspunkt.nano,
-                nestePåminnelsetidspunkt,
-                originalJson
+                mapOf("aktorId" to aktørId,
+                "fodselsnummer" to fødselsnummer,
+                "organisasjonsnummer" to organisasjonsnummer,
+                "vedtaksperiodeId" to vedtaksperiodeId,
+                "tilstand" to tilstand,
+                "endringstidspunkt" to endringstidspunkt,
+                "endringstidspunktNano" to endringstidspunkt.nano,
+                "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt,
+                "originalJson" to originalJson)
             ).asExecute
         )
     }
@@ -105,9 +105,9 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
 private fun oppdaterPåminnelse(transactionalSession: TransactionalSession, påminnelse: PåminnelseDto) {
     transactionalSession.run(
         queryOf(
-            "UPDATE paminnelse SET skal_reberegnes=false, neste_paminnelsetidspunkt = ?, antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=?::BIGINT",
-            påminnelse.nestePåminnelsetidspunkt,
-            påminnelse.id
+            "UPDATE paminnelse SET skal_reberegnes=false, neste_paminnelsetidspunkt = :nestePaminnelsetidspunkt, antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=:id::BIGINT",
+            mapOf("nestePaminnelsetidspunkt" to påminnelse.nestePåminnelsetidspunkt, "id" to påminnelse.id)
+
         ).asExecute
     )
 }
