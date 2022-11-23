@@ -210,7 +210,8 @@ internal class SpleisPåminnelserTest {
                         mapOf(
                             "id" to vedtaksperiodeId.toString(),
                             "tilstand" to tilstand,
-                            "tidsstempel" to "$endringstidspunkt"
+                            "opprettet" to "${endringstidspunkt.minusDays(1)}",
+                            "oppdatert" to "$endringstidspunkt"
                         )
                     ),
                     "forkastedeVedtaksperioder" to emptyList<Map<String, Any>>(),

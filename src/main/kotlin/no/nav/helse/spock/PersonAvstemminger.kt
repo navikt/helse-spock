@@ -26,15 +26,15 @@ internal class PersonAvstemminger(
                     requireKey("organisasjonsnummer")
                     requireArray("vedtaksperioder") {
                         requireKey("id", "tilstand")
-                        require("tidsstempel", JsonNode::asLocalDateTime)
+                        require("oppdatert", JsonNode::asLocalDateTime)
                     }
                     requireArray("forkastedeVedtaksperioder") {
                         requireKey("id", "tilstand")
-                        require("tidsstempel", JsonNode::asLocalDateTime)
+                        require("oppdatert", JsonNode::asLocalDateTime)
                     }
                     requireArray("utbetalinger") {
                         requireKey("id", "type", "status")
-                        require("tidsstempel", JsonNode::asLocalDateTime)
+                        require("oppdatert", JsonNode::asLocalDateTime)
                     }
                 }
             }
@@ -59,7 +59,7 @@ internal class PersonAvstemminger(
             val organisasjonsnummer = arbeidsgiver.path("organisasjonsnummer").asText()
             arbeidsgiver.path("vedtaksperioder").forEach { vedtaksperiode ->
                 val tilstand = vedtaksperiode.path("tilstand").asText()
-                val endringstidspunkt = vedtaksperiode.path("tidsstempel").asLocalDateTime()
+                val endringstidspunkt = vedtaksperiode.path("oppdatert").asLocalDateTime()
                 lagreTilstandsendring(
                     dataSource,
                     aktørId,
@@ -83,7 +83,7 @@ internal class PersonAvstemminger(
                     utbetalingId = utbetaling.path("id").asUUID(),
                     type = utbetaling.path("type").asText(),
                     status = utbetaling.path("status").asText(),
-                    endringstidspunkt = utbetaling.path("tidsstempel").asLocalDateTime(),
+                    endringstidspunkt = utbetaling.path("oppdatert").asLocalDateTime(),
                     data = utbetaling.toString()
                 ).lagre(dataSource, overskriv = true)
             }
