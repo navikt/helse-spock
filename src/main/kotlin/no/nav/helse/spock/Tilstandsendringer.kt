@@ -105,8 +105,7 @@ class Tilstandsendringer(
                     "AVVENTER_UTBETALINGSGRUNNLAG",
                     "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
                     "AVVENTER_GODKJENNING_REVURDERING",
-                    "AVVENTER_ARBEIDSGIVERE",
-                    "AVVENTER_ARBEIDSGIVERE_REVURDERING",
+                    "AVVENTER_REVURDERING",
                     "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12).withMinute((0..59).random()) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
                     "TIL_UTBETALING",
                     "TIL_ANNULLERING",
