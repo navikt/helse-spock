@@ -97,8 +97,9 @@ fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Un
                     )
                 }.asList
             )
-                .also(block)
-                .onEach {
+                .takeUnless { it.isEmpty() }
+                ?.also(block)
+                ?.onEach {
                     oppdaterPåminnelse(tx, it)
                 }
         }
