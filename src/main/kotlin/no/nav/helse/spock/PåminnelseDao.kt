@@ -73,15 +73,16 @@ fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = using(s
     slettPåminnelse(session, vedtaksperiodeId)
 }
 
-fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
-    return using(sessionOf(dataSource)) { session ->
+fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Unit) {
+    return sessionOf(dataSource).use { session ->
         session.transaction { tx ->
             tx.run(
                 queryOf(
                     "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt, skal_reberegnes " +
                             "FROM paminnelse " +
                             "WHERE neste_paminnelsetidspunkt <= now()" +
-                            "LIMIT 20000"
+                            "LIMIT 20000" +
+                            "FOR UPDATE SKIP LOCKED;"
                 ).map {
                     PåminnelseDto(
                         id = it.string("id"),
@@ -95,9 +96,11 @@ fun hentPåminnelser(dataSource: DataSource): List<PåminnelseDto> {
                         ønskerReberegning = it.boolean("skal_reberegnes")
                     )
                 }.asList
-            ).onEach {
-                oppdaterPåminnelse(tx, it)
-            }
+            )
+                .also(block)
+                .onEach {
+                    oppdaterPåminnelse(tx, it)
+                }
         }
     }
 }

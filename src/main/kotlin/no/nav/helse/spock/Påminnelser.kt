@@ -36,16 +36,16 @@ class Påminnelser(
     }
 
     private fun lagPåminnelser(context: MessageContext) {
-        val påminnelser = hentPåminnelser(dataSource)
-        if (påminnelser.isEmpty()) return
-        log.info("hentet ${påminnelser.size} påminnelser fra db")
-        secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
-        påminnelser.map {
-            it.fødselsnummer to it.toJson()
-        }.onEach { (_, påminnelse) ->
-            secureLogger.info("Produserer $påminnelse")
-        }.forEach { (key, value) ->
-            context.publish(key, value)
+        hentPåminnelser(dataSource) { påminnelser ->
+            log.info("hentet ${påminnelser.size} påminnelser fra db")
+            secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
+            påminnelser.map {
+                it.fødselsnummer to it.toJson()
+            }.onEach { (_, påminnelse) ->
+                secureLogger.info("Produserer $påminnelse")
+            }.forEach { (key, value) ->
+                context.publish(key, value)
+            }
         }
     }
 }
