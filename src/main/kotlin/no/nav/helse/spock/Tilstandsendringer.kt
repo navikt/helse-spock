@@ -75,40 +75,16 @@ class Tilstandsendringer(
                 antallGangerPåminnet: Int
             ) =
                 when (tilstand) {
-                    "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
-                    "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
-                    "MOTTATT_SYKMELDING_FERDIG_GAP",
-                    "MOTTATT_SYKMELDING_UFERDIG_GAP" -> when (antallGangerPåminnet) {
-                        0 -> LocalDateTime.now() // for å trigge at vi henter infotrygdhistorikk på nyopprettede personer asap
-                        else -> defaultIntervall(endringstidspunkt)
-                    }
-                    "AVVENTER_SØKNAD_FERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_UFERDIG_GAP",
-                    "AVVENTER_UFERDIG_GAP",
-                    "AVVENTER_UFERDIG",
+                    "AVVENTER_GODKJENNING_REVURDERING",
+                    "AVVENTER_REVURDERING",
+                    "AVVENTER_GODKJENNING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP",
-                    "AVVENTER_INNTEKTSMELDING_FERDIG_FORLENGELSE",
-                    "AVVENTER_INNTEKTSMELDING_UFERDIG_FORLENGELSE",
-                    "AVVENTER_UFERDIG_FORLENGELSE",
-                    "AVVENTER_SØKNAD_FERDIG_FORLENGELSE",
-                    "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
-                    "AVVENTER_SØKNAD_UFERDIG_GAP",
-                    "AVVENTER_ARBEIDSGIVERSØKNAD_FERDIG_GAP",
-                    "AVVENTER_ARBEIDSGIVERSØKNAD_UFERDIG_GAP",
-                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_GAP",
-                    "UTEN_UTBETALING_MED_INNTEKTSMELDING_UFERDIG_FORLENGELSE" -> defaultIntervall(endringstidspunkt)
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK" -> defaultIntervall(endringstidspunkt)
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
-                    "AVVENTER_UTBETALINGSGRUNNLAG",
                     "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
-                    "AVVENTER_GODKJENNING_REVURDERING",
-                    "AVVENTER_REVURDERING",
-                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plussTilfeldigeTimer(8, 12).withMinute((0..59).random()) // ca to/tre ganger i døgnet, et tilfeldig klokkslett
                     "TIL_UTBETALING",
-                    "TIL_ANNULLERING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
                     "START",
