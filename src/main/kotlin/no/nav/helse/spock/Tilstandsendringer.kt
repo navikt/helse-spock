@@ -78,20 +78,19 @@ class Tilstandsendringer(
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_REVURDERING",
                     "AVVENTER_GODKJENNING",
-                    "AVVENTER_BLOKKERENDE_PERIODE" -> defaultIntervall(endringstidspunkt)
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK" -> when (antallGangerPåminnet) {
-                        // fallback for å kunne sende en påminnelse med én gang slik at perioden vet at replay er ferdig
-                        0 -> LocalDateTime.now()
-                        else -> defaultIntervall(endringstidspunkt)
-                    }
+                    "AVVENTER_BLOKKERENDE_PERIODE",
+                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"-> defaultIntervall(endringstidspunkt)
+
                     "AVVENTER_INFOTRYGDHISTORIKK",
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
                     "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
+
                     "START",
                     "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                     "REVURDERING_FEILET",
@@ -99,6 +98,7 @@ class Tilstandsendringer(
                     "AVSLUTTET_UTEN_UTBETALING",
                     "TIL_INFOTRYGD",
                     "AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+
                     else -> {
                         sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
                         defaultIntervall(endringstidspunkt)
