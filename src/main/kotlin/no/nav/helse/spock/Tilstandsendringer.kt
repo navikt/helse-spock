@@ -79,6 +79,7 @@ class Tilstandsendringer(
                     "AVVENTER_REVURDERING",
                     "AVVENTER_GODKJENNING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
+                    "AVVENTER_INNTEKTSMELDING",
                     "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"-> defaultIntervall(endringstidspunkt)
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
