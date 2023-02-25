@@ -75,12 +75,12 @@ class Tilstandsendringer(
                 antallGangerPåminnet: Int
             ) =
                 when (tilstand) {
-                    "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_REVURDERING",
+                    "AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.plussTilfeldigeTimer(48, 71).plussTilfeldigeMinutter(59) // påminner om 2-3 døgn
+
+                    "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING",
-                    "AVVENTER_BLOKKERENDE_PERIODE",
-                    "AVVENTER_INNTEKTSMELDING",
-                    "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"-> defaultIntervall(endringstidspunkt)
+                    "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.plussTilfeldigeTimer(120, 167).plussTilfeldigeMinutter(59) // påminner om 5-7 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
                     "AVVENTER_VILKÅRSPRØVING",
