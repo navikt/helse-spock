@@ -67,8 +67,8 @@ internal class UtbetalingPåminnelserTest {
     @Test
     fun `out of order`() {
         val utbetalingId = UUID.randomUUID()
-        val status = "SENDT"
-        val messageEldst = utbetalingEndret(utbetalingId, "GODKJENT")
+        val status = "AVVENTER_PERSONKVITTERING"
+        val messageEldst = utbetalingEndret(utbetalingId, "AVVENTER_KVITTERINGER")
         val messageNyest = utbetalingEndret(utbetalingId, status)
         rapid.sendTestMessage(messageNyest)
         rapid.sendTestMessage(messageEldst)
@@ -78,8 +78,8 @@ internal class UtbetalingPåminnelserTest {
     @Test
     fun `overskriver status 1`() {
         val utbetalingId = UUID.randomUUID()
-        val status = "SENDT"
-        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "GODKJENT"))
+        val status = "AVVENTER_PERSONKVITTERING"
+        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "AVVENTER_KVITTERINGER"))
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
         assertPåminnelse(utbetalingId, status)
     }
@@ -88,42 +88,34 @@ internal class UtbetalingPåminnelserTest {
     fun `overskriver status 2`() {
         val utbetalingId = UUID.randomUUID()
         val status = "UTBETALT"
-        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "GODKJENT"))
-        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "SENDT"))
+        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "AVVENTER_KVITTERINGER"))
+        rapid.sendTestMessage(utbetalingEndret(utbetalingId, "AVVENTER_ARBEIDSGIVERKVITTERING"))
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
         assertIngenPåminnelse(utbetalingId, status)
     }
 
     @Test
-    fun `lager påminnelse for godkjent`() {
+    fun `lager påminnelse for AVVENTER_KVITTERINGER`() {
         val utbetalingId = UUID.randomUUID()
-        val status = "GODKJENT"
+        val status = "AVVENTER_KVITTERINGER"
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
         assertPåminnelse(utbetalingId, status)
     }
 
     @Test
-    fun `lager påminnelse for sendt`() {
+    fun `lager påminnelse for AVVENTER_ARBEIDSGIVERKVITTERING`() {
         val utbetalingId = UUID.randomUUID()
-        val status = "SENDT"
+        val status = "AVVENTER_ARBEIDSGIVERKVITTERING"
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
         assertPåminnelse(utbetalingId, status)
     }
 
     @Test
-    fun `lager påminnelse for overført`() {
+    fun `lager påminnelse for AVVENTER_PERSONKVITTERING`() {
         val utbetalingId = UUID.randomUUID()
-        val status = "OVERFØRT"
+        val status = "AVVENTER_PERSONKVITTERING"
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
         assertPåminnelse(utbetalingId, status)
-    }
-
-    @Test
-    fun `lager ikke påminnelse for utbetaling feilet`() {
-        val utbetalingId = UUID.randomUUID()
-        val status = "UTBETALING_FEILET"
-        rapid.sendTestMessage(utbetalingEndret(utbetalingId, status))
-        assertIngenPåminnelse(utbetalingId, status)
     }
 
     @Test
