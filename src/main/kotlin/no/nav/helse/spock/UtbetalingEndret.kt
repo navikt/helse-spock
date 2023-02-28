@@ -29,9 +29,10 @@ class UtbetalingEndret(rapidsConnection: RapidsConnection,
                 it.requireKey("aktørId", "fødselsnummer", "organisasjonsnummer", "utbetalingId")
                 it.requireAny("type", listOf("UTBETALING", "ANNULLERING", "ETTERUTBETALING", "REVURDERING"))
                 it.requireAny("gjeldendeStatus", listOf(
-                        "IKKE_UTBETALT", "FORKASTET", "IKKE_GODKJENT",
-                        "GODKJENT_UTEN_UTBETALING", "GODKJENT", "SENDT",
-                        "OVERFØRT", "UTBETALING_FEILET", "UTBETALT", "ANNULLERT"
+                    "IKKE_UTBETALT", "FORKASTET", "IKKE_GODKJENT",
+                    "OVERFØRT", "AVVENTER_KVITTERINGER",
+                    "AVVENTER_ARBEIDSGIVERKVITTERING", "AVVENTER_PERSONKVITTERING",
+                    "UTBETALT", "ANNULLERT", "GODKJENT_UTEN_UTBETALING"
                 ))
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }

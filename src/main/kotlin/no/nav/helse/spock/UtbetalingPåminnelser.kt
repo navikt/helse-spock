@@ -165,7 +165,7 @@ class UtbetalingPåminnelser(
         internal companion object {
             internal fun nestePåminnelsetidspunkt(tidspunkt: LocalDateTime, status: String): LocalDateTime? {
                 return when (status) {
-                    in listOf("GODKJENT", "SENDT", "OVERFØRT") -> tidspunkt.plusHours(1)
+                    in listOf("OVERFØRT", "AVVENTER_KVITTERINGER", "AVVENTER_ARBEIDSGIVERKVITTERING", "AVVENTER_PERSONKVITTERING") -> tidspunkt.plusHours(1)
                     else -> null
                 }
             }
