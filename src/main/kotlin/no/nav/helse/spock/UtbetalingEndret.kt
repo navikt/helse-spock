@@ -30,7 +30,7 @@ class UtbetalingEndret(rapidsConnection: RapidsConnection,
                 it.requireAny("type", listOf("UTBETALING", "ANNULLERING", "ETTERUTBETALING", "REVURDERING"))
                 it.requireAny("gjeldendeStatus", listOf(
                     "IKKE_UTBETALT", "FORKASTET", "IKKE_GODKJENT",
-                    "OVERFØRT", "AVVENTER_KVITTERINGER",
+                    "GODKJENT", "OVERFØRT", "AVVENTER_KVITTERINGER",
                     "AVVENTER_ARBEIDSGIVERKVITTERING", "AVVENTER_PERSONKVITTERING",
                     "UTBETALT", "ANNULLERT", "GODKJENT_UTEN_UTBETALING"
                 ))
