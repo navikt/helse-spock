@@ -31,7 +31,7 @@ fun launchApp(env: Map<String, String>) {
         Påminnelser(this, dataSource, schedule)
         UtbetalingEndret(this, dataSource)
         UtbetalingPåminnelser(this, dataSource, schedule)
-        PersonAvstemminger(this, dataSource)
+//        PersonAvstemminger(this, dataSource)
         PersonPåminnelser(this, dataSource, schedule)
     }.apply {
         register(object : RapidsConnection.StatusListener {
