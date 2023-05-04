@@ -2,12 +2,10 @@ package no.nav.helse.spock
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
@@ -41,31 +39,32 @@ class PersonPåminnelser(
     }
 
     private fun lagPåminnelser(context: MessageContext) {
-        val påminnelser = hentPåminnelser()
-        if (påminnelser.isEmpty()) return
-        log.info("hentet ${påminnelser.size} personpåminnelser fra db")
-        secureLogger.info("hentet ${påminnelser.size} personpåminnelser fra db")
-        påminnelser.onEach { it.send(context) }
+        hentPåminnelser(dataSource) { påminnelser ->
+            log.info("hentet ${påminnelser.size} personpåminnelser fra db")
+            secureLogger.info("hentet ${påminnelser.size} personpåminnelser fra db")
+            påminnelser.onEach { it.send(context) }
+        }
     }
 
-    private fun hentPåminnelser(): List<Pair<String, String>> {
-        @Language("PostgreSQL")
-        val stmt = """
-            SELECT fnr,aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000
-        """
-        val personer = mutableListOf<Long>()
-        return using(sessionOf(dataSource)) { session ->
-            session.run(queryOf(stmt).map { row ->
-                val fnr = row.long("fnr")
-                personer.add(fnr)
-                Pair(fnr.toString().padStart(11, '0'), row.string("aktor_id"))
-            }.asList).also {
-                if (personer.isNotEmpty()) {
-                    session.run(queryOf("""
-                        UPDATE person SET neste_paminnelsetidspunkt = NULL
-                        WHERE fnr IN(${personer.joinToString { "?" }})
-                    """, *personer.toTypedArray()).asExecute)
-                }
+    private fun hentPåminnelser(dataSource: DataSource, block: (List<Pair<String, String>>) -> Unit) {
+        sessionOf(dataSource).use { session ->
+            session.transaction { tx ->
+                tx.run(
+                    queryOf(
+                        "SELECT fnr, aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000 FOR UPDATE SKIP LOCKED;"
+                    ).map {
+                        it.long("fnr").toString().padStart(11, '0') to it.string("aktor_id")
+                    }.asList
+                )
+                    .takeUnless { it.isEmpty() }
+                    ?.also(block)
+                    ?.also { personer ->
+                        val aktørIder = personer.map { it.second }
+                        tx.run(queryOf("""
+                            UPDATE person SET neste_paminnelsetidspunkt = NULL
+                            WHERE aktor_id IN(${aktørIder.joinToString { "?" }})
+                        """, *aktørIder.toTypedArray()).asExecute)
+                    }
             }
         }
     }
