@@ -79,7 +79,8 @@ class Tilstandsendringer(
                     "AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.plussTilfeldigeTimer(48, 71).plussTilfeldigeMinutter(59) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
-                    "AVVENTER_GODKJENNING",
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
+
                     "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.plussTilfeldigeTimer(120, 167).plussTilfeldigeMinutter(59) // påminner om 5-7 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
