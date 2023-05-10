@@ -3,7 +3,6 @@ package no.nav.helse.spock
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -12,8 +11,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -60,7 +58,7 @@ internal class UtbetalingPåminnelserTest {
         logCollector.list.clear()
         rapid = TestRapid().apply {
             UtbetalingEndret(this, dataSource)
-            UtbetalingPåminnelser(this, dataSource, Duration.ofMillis(1))
+            UtbetalingPåminnelser(this, dataSource)
         }
     }
 
@@ -155,15 +153,14 @@ internal class UtbetalingPåminnelserTest {
     }
 
     private fun assertPåminnelse(utbetalingId: UUID, status: String) {
-        val meldinger = (0 until rapid.inspektør.size).map { rapid.inspektør.message(it) }
-        assertTrue(meldinger.any {
-            it.path("@event_name").asText() == "utbetalingpåminnelse"
-                    && it.path("utbetalingId").asText() == utbetalingId.toString()
-                    && it.path("status").asText() == status
-        }) {
-            "Fant ingen påminnelse: $meldinger"
-        }
+        rapid.sendTestMessage(kjørSpock())
+        val sisteMelding = rapid.inspektør.message(rapid.inspektør.size - 1)
+        assertEquals("utbetalingpåminnelse", sisteMelding.path("@event_name").asText())
+        assertEquals(utbetalingId.toString(), sisteMelding.path("utbetalingId").asText())
+        assertEquals(status, sisteMelding.path("status").asText())
     }
+
+    private fun kjørSpock() = JsonMessage.newMessage("kjør_spock").toJson()
 
     private fun assertIngenPåminnelse(utbetalingId: UUID, status: String) {
         val meldinger = (0 until rapid.inspektør.size).map { rapid.inspektør.message(it) }

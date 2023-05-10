@@ -6,15 +6,13 @@ import kotliquery.using
 import no.nav.helse.rapids_rivers.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
 class UtbetalingPåminnelser(
-        rapidsConnection: RapidsConnection,
-        private val dataSource: DataSource,
-        schedule: Duration
+    rapidsConnection: RapidsConnection,
+    private val dataSource: DataSource
 ) : River.PacketListener {
 
     private companion object {
@@ -22,19 +20,16 @@ class UtbetalingPåminnelser(
         private val secureLogger = LoggerFactory.getLogger("tjenestekall")
     }
 
-    private var lastReportTime = LocalDateTime.MIN
-    private val påminnelseSchedule = { lastReportTime: LocalDateTime ->
-        lastReportTime < LocalDateTime.now().minusSeconds(schedule.toSeconds())
-    }
-
     init {
-        River(rapidsConnection).register(this)
+        River(rapidsConnection)
+            .validate {
+                it.demandAny("@event_name", listOf("minutt", "kjør_spock"))
+            }
+            .register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (!påminnelseSchedule(lastReportTime)) return
         lagPåminnelser(context)
-        lastReportTime = LocalDateTime.now()
     }
 
     private fun lagPåminnelser(context: MessageContext) {

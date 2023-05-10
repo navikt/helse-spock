@@ -1,26 +1,19 @@
 package no.nav.helse.spock
 
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.*
-import java.util.concurrent.TimeUnit
-import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.awaitility.Awaitility.await
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.util.*
+import javax.sql.DataSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SpleisPåminnelserTest {
@@ -47,7 +40,7 @@ internal class SpleisPåminnelserTest {
             Forkastelser(this, dataSource)
             Tilstandsendringer(this, dataSource)
             IkkePåminnelser(this, dataSource)
-            Påminnelser(this, dataSource, Duration.ofMillis(1))
+            Påminnelser(this, dataSource)
             PersonAvstemminger(this, dataSource)
         }
     }
@@ -66,34 +59,17 @@ internal class SpleisPåminnelserTest {
     fun `lager påminnelser`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_HISTORIKK"
-        val endringstidspunkt = LocalDateTime
-            .now()
-            .minusSeconds(
-                ChronoUnit.SECONDS.between(
-                    LocalDateTime.now(),
-                    Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(
-                        tilstand,
-                        LocalDateTime.now(),
-                        0
-                    )
-                )
-            )
-            .plusSeconds(5)
+        val now = LocalDateTime.now()
+        val nestePåminnelsetidspunkt = Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(tilstand, now, 0)
+        val endringstidspunkt = now
+            .minusSeconds(ChronoUnit.SECONDS.between(now, nestePåminnelsetidspunkt))
+            .minusSeconds(1)
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
-        await("skal produsere påminnelse")
-            .atMost(10, TimeUnit.SECONDS)
-            .until {
-                rapid.sendTestMessage("{}") // create noise on the rapid
-
-                val inspektør = rapid.inspektør
-                if (inspektør.size == 0) false
-                else (0 until inspektør.size)
-                    .any {
-                        inspektør.field(it, "@event_name").asText() == "påminnelse"
-                                && inspektør.field(it, "vedtaksperiodeId").asText() == vedtaksperiodeId.toString()
-                                && inspektør.field(it, "tilstand").asText() == tilstand
-                    }
-            }
+        rapid.sendTestMessage(kjørSpock())
+        val påminnelse = rapid.inspektør.message(rapid.inspektør.size - 1)
+        assertEquals("påminnelse", påminnelse.path("@event_name").asText())
+        assertEquals(vedtaksperiodeId.toString(), påminnelse.path("vedtaksperiodeId").asText())
+        assertEquals(tilstand, påminnelse.path("tilstand").asText())
     }
 
     @Test
@@ -175,6 +151,8 @@ internal class SpleisPåminnelserTest {
             "hendelseId": "030001BD-8FBA-4324-9725-D618CE5B83E9",
             "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
+
+    private fun kjørSpock() = JsonMessage.newMessage("kjør_spock").toJson()
 
     private fun tilstandsendringsevent(
         vedtaksperiodeId: UUID,

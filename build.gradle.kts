@@ -24,7 +24,6 @@ dependencies {
     implementation("com.github.seratch:kotliquery:1.9.0")
 
     testImplementation("org.testcontainers:postgresql:1.17.5")
-    testImplementation("org.awaitility:awaitility:4.2.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
