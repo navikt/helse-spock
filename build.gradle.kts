@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.9.10"
 }
 
-val junitJupiterVersion = "5.9.2"
+val junitJupiterVersion = "5.10.0"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 group = "no.nav.helse"
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2023050308441683096263.f5a276d7bd28")
+    implementation("com.github.navikt:rapids-and-rivers:2023093008351696055717.ffdec6aede3d")
 
     implementation("org.flywaydb:flyway-core:9.17.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
@@ -51,9 +51,8 @@ tasks {
 
         doLast {
             configurations.runtimeClasspath.get().forEach {
-                val file = File("$buildDir/libs/${it.name}")
-                if (!file.exists())
-                    it.copyTo(file)
+                val file = File("${layout.buildDirectory.get()}/libs/${it.name}")
+                if (!file.exists()) it.copyTo(file)
             }
         }
     }
@@ -66,6 +65,6 @@ tasks {
     }
 
     withType<Wrapper> {
-        gradleVersion = "8.1.1"
+        gradleVersion = "8.3"
     }
 }
