@@ -22,11 +22,10 @@ spec:
       memory: 512Mi
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 64Mi
   replicas:
     min: 1
     max: 1
-    cpuThresholdPercentage: 90
   prometheus:
     enabled: true
     path: /metrics
