@@ -9,6 +9,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
 import kotlin.math.abs
+import kotlin.math.min
+import kotlin.random.Random
 
 class Tilstandsendringer(
     rapidsConnection: RapidsConnection,
@@ -76,12 +78,12 @@ class Tilstandsendringer(
             ) =
                 when (tilstand) {
                     "AVVENTER_REVURDERING",
-                    "AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.plussTilfeldigeTimer(48, 71).plussTilfeldigeMinutter(59) // påminner om 2-3 døgn
+                    "AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
-                    "AVVENTER_GODKJENNING" -> endringstidspunkt.plusHours(24)
+                    "AVVENTER_GODKJENNING" -> endringstidspunkt.tilfeldigKlokkeslett(24, 36)
 
-                    "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.plussTilfeldigeTimer(120, 167).plussTilfeldigeMinutter(59) // påminner om 5-7 døgn
+                    "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
                     "AVVENTER_VILKÅRSPRØVING",
@@ -137,8 +139,7 @@ class Tilstandsendringer(
                     if (endringstidspunkt.erHelg() || etterStengetid(endringstidspunkt)) endringstidspunkt.nesteUkedag()
                     else endringstidspunkt.toLocalDate()
                 // spre påminnelsene litt utover morgentimene
-                return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).plussTilfeldigeTimer(0, 1)
-                    .plussTilfeldigeMinutter(59)
+                return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).tilfeldigKlokkeslett(0, 1)
             }
 
             private fun LocalDateTime.nesteUkedag() = this.plusDays(
@@ -158,7 +159,7 @@ class Tilstandsendringer(
     }
 }
 
+private fun LocalDateTime.tilfeldigKlokkeslett(minTimer: Int, maxTimer: Int) =
+    this.plusHours((minTimer..maxTimer).random().toLong()).withMinute((0..59).random())
+
 private fun LocalDateTime.erHelg() = this.dayOfWeek == SATURDAY || this.dayOfWeek == SUNDAY
-private fun LocalDateTime.plussTilfeldigeTimer(min: Int, max: Int) = this.plusHours((min..max).random().toLong())
-private fun LocalDateTime.plussTilfeldigeMinutter(minutter: Int) =
-    if (minutter < 1) this else this.plusMinutes((1..minutter).random().toLong())

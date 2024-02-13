@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "1.9.22"
 }
 
+val flywayVersion = "10.7.2"
 val junitJupiterVersion = "5.10.0"
 val mainClass = "no.nav.helse.spock.AppKt"
 
@@ -25,12 +26,13 @@ repositories {
 dependencies {
     implementation("com.github.navikt:rapids-and-rivers:2024020507581707116327.1c34df474331")
 
-    implementation("org.flywaydb:flyway-core:9.17.0")
-    implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
-    testImplementation("org.testcontainers:postgresql:1.17.5")
+    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.02.09-10.44-24d5802f")
 
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -66,6 +68,11 @@ tasks {
         testLogging {
             events("skipped", "failed")
         }
+
+        systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+        systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+        systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+        systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", "4")
     }
 
     withType<Wrapper> {

@@ -74,16 +74,18 @@ fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = using(s
 }
 
 fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Unit) {
+    @Language("PostgreSQL")
+    val query = """
+        SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt, skal_reberegnes 
+        FROM paminnelse 
+        WHERE neste_paminnelsetidspunkt <= now()
+        LIMIT 20000
+        FOR UPDATE SKIP LOCKED;
+    """
     return sessionOf(dataSource).use { session ->
         session.transaction { tx ->
             tx.run(
-                queryOf(
-                    "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt, skal_reberegnes " +
-                            "FROM paminnelse " +
-                            "WHERE neste_paminnelsetidspunkt <= now()" +
-                            "LIMIT 20000" +
-                            "FOR UPDATE SKIP LOCKED;"
-                ).map {
+                queryOf(query).map {
                     PåminnelseDto(
                         id = it.string("id"),
                         aktørId = it.string("aktor_id"),

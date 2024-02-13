@@ -1,58 +1,42 @@
 package no.nav.helse.spock
 
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.testcontainers.containers.PostgreSQLContainer
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SpleisPåminnelserTest {
 
     private lateinit var rapid: TestRapid
-    private lateinit var dataSource: DataSource
-    private val postgres = PostgreSQLContainer<Nothing>("postgres:13")
-
-    @BeforeAll
-    fun `start postgres`() {
-        postgres.start()
-        val dsbuilder = DataSourceBuilder(
-            mapOf(
-                "DATABASE_JDBC_URL" to postgres.jdbcUrl,
-                "DATABASE_USERNAME" to postgres.username,
-                "DATABASE_PASSWORD" to postgres.password,
-            )
-        )
-
-        dsbuilder.migrate()
-        dataSource = dsbuilder.getDataSource()
-
-        rapid = TestRapid().apply {
-            Forkastelser(this, dataSource)
-            Tilstandsendringer(this, dataSource)
-            IkkePåminnelser(this, dataSource)
-            Påminnelser(this, dataSource)
-            PersonAvstemminger(this, dataSource)
-        }
-    }
-
-    @AfterAll
-    fun `stop postgres`() {
-        postgres.stop()
-    }
+    private lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun setup() {
-        rapid.reset()
+        dataSource = databaseContainer.nyTilkobling()
+        rapid = TestRapid().apply {
+            Forkastelser(this, dataSource.ds)
+            Tilstandsendringer(this, dataSource.ds)
+            IkkePåminnelser(this, dataSource.ds)
+            Påminnelser(this, dataSource.ds)
+            PersonAvstemminger(this, dataSource.ds)
+        }
+    }
+
+    @AfterEach
+    fun teardown() {
+        databaseContainer.droppTilkobling(dataSource)
     }
 
     @Test
@@ -99,7 +83,7 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
 
         assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
         assertEquals("TIL_UTBETALING", påminnelse.tilstand)
@@ -116,7 +100,7 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(avstemming(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
 
         assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
         assertEquals("TIL_UTBETALING", påminnelse.tilstand)
@@ -131,12 +115,12 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
         assertEquals(endringstidspunkt, påminnelse.endringstidspunkt)
         assertEquals(tilstand, påminnelse.tilstand)
     }
 
-    private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) = using(sessionOf(dataSource)) { session ->
+    private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) = sessionOf(dataSource.ds).use { session ->
         session.run(queryOf(
             "SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;",
             vedtaksperiodeId.toString()

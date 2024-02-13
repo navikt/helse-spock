@@ -1,65 +1,34 @@
 package no.nav.helse.spock
 
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.*
-import javax.sql.DataSource
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.slf4j.LoggerFactory
-import org.testcontainers.containers.PostgreSQLContainer
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class UtbetalingPåminnelserTest {
-    private val logCollector = ListAppender<ILoggingEvent>()
-
-    init {
-        (LoggerFactory.getLogger("tjenestekall") as Logger).addAppender(logCollector)
-        logCollector.start()
-    }
-
-    private val postgres = PostgreSQLContainer<Nothing>("postgres:13")
     private lateinit var rapid: TestRapid
-    private lateinit var dataSource: DataSource
-
-    @BeforeAll
-    fun `start postgres`() {
-        postgres.start()
-        val dsbuilder = DataSourceBuilder(
-            mapOf(
-                "DATABASE_JDBC_URL" to postgres.jdbcUrl,
-                "DATABASE_USERNAME" to postgres.username,
-                "DATABASE_PASSWORD" to postgres.password,
-            )
-        )
-
-        dsbuilder.migrate()
-        dataSource = dsbuilder.getDataSource()
-    }
-
-    @AfterAll
-    fun `stop postgres`() {
-        postgres.stop()
-    }
-
+    private lateinit var dataSource: TestDataSource
     @BeforeEach
     fun setup() {
-        logCollector.list.clear()
+        dataSource = databaseContainer.nyTilkobling()
+
         rapid = TestRapid().apply {
-            UtbetalingEndret(this, dataSource)
-            UtbetalingPåminnelser(this, dataSource)
+            UtbetalingEndret(this, dataSource.ds)
+            UtbetalingPåminnelser(this, dataSource.ds)
         }
+    }
+
+    @AfterEach
+    fun teardown() {
+        databaseContainer.droppTilkobling(dataSource)
     }
 
     @Test
@@ -139,7 +108,6 @@ internal class UtbetalingPåminnelserTest {
         val status = "UTBETALT"
         rapid.sendTestMessage(utbetalingEndret(utbetalingId, status, type))
         assertIngenPåminnelse(utbetalingId, status)
-        assertFalse(logCollector.list.any { it.message.startsWith("kunne ikke forstå utbetaling_endret") })
     }
 
     @Test
