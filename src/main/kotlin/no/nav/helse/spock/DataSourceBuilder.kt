@@ -3,6 +3,7 @@ package no.nav.helse.spock
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.MigrationVersion
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
@@ -30,6 +31,8 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         Flyway.configure()
             .dataSource(dataSource)
             .lockRetryCount(-1)
+            .baselineVersion(MigrationVersion.fromVersion("01"))
+            .baselineOnMigrate(true)
             .load()
             .migrate()
         logger.info("Migrering ferdig!")
