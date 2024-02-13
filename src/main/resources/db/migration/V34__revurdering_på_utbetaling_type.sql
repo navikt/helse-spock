@@ -1,1 +1,0 @@
-ALTER type utbetaling_type ADD VALUE 'REVURDERING';

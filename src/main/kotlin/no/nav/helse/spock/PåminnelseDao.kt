@@ -1,6 +1,9 @@
 package no.nav.helse.spock
 
-import kotliquery.*
+import kotliquery.Session
+import kotliquery.TransactionalSession
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import javax.sql.DataSource
@@ -13,7 +16,7 @@ internal fun lagrePerson(dataSource: DataSource, fødselsnummer: String, aktørI
             UPDATE SET siste_aktivitet = excluded.siste_aktivitet
             WHERE person.siste_aktivitet < excluded.siste_aktivitet
     """
-    using(sessionOf(dataSource)) {
+    sessionOf(dataSource).use {
         it.run(queryOf(statement, mapOf(
             "fnr" to fødselsnummer.toLong(),
             "aktor" to aktørId.toLong(),
@@ -35,7 +38,7 @@ internal fun lagreTilstandsendring(
 ) {
     lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
     if (Tilstandsendringer.TilstandsendringEventDto.erSluttilstand(tilstand)) slettPåminnelse(dataSource, vedtaksperiodeId)
-    else using(sessionOf(dataSource)) {
+    else sessionOf(dataSource).use {
         it.run(
             queryOf(
                 "INSERT INTO paminnelse (aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
@@ -69,7 +72,7 @@ private fun slettPåminnelse(
     vedtaksperiodeId: String
 ) = session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId).asExecute)
 
-fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = using(sessionOf(dataSource)) { session ->
+fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = sessionOf(dataSource).use { session ->
     slettPåminnelse(session, vedtaksperiodeId)
 }
 

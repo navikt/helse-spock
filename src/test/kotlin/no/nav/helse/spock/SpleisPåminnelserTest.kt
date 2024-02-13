@@ -3,7 +3,6 @@ package no.nav.helse.spock
 import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
@@ -202,7 +201,7 @@ internal class SpleisPåminnelserTest {
     ).toJson()
 
     private fun hentPåminnelseFraDatabasen(dataSource: DataSource, vedtaksperiodeId: UUID): PåminnelseDto {
-        return requireNotNull(using(sessionOf(dataSource)) { session ->
+        return requireNotNull(sessionOf(dataSource).use { session ->
             session.transaction { tx ->
                 tx.run(
                     queryOf(

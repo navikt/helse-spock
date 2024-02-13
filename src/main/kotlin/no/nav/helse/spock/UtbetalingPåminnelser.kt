@@ -2,7 +2,6 @@ package no.nav.helse.spock
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.helse.rapids_rivers.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -46,7 +45,7 @@ class UtbetalingPåminnelser(
             SELECT * FROM utbetaling
             WHERE neste_paminnelsetidspunkt <= now()
         """
-        return using(sessionOf(dataSource)) {
+        return sessionOf(dataSource).use {
             it.run(queryOf(stmt).map { row ->
                 Utbetalingpåminnelse(
                         aktørId = row.string("aktor_id"),
@@ -108,7 +107,7 @@ class UtbetalingPåminnelser(
                 opprettet=now()
             WHERE $where
         """
-            using(sessionOf(dataSource)) {
+            sessionOf(dataSource).use {
                 it.run(queryOf(statement, mapOf(
                     "id" to utbetalingId,
                     "aktorId" to aktørId,
@@ -132,7 +131,7 @@ class UtbetalingPåminnelser(
                     neste_paminnelsetidspunkt = :nestePaminnelsetidspunkt
                 WHERE id = :id
             """
-            using(sessionOf(dataSource)) {
+            sessionOf(dataSource).use {
                 it.run(queryOf(statement, mapOf(
                         "id" to utbetalingId,
                         "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt(tidspunkt, status)

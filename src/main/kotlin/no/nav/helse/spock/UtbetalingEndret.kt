@@ -1,17 +1,8 @@
 package no.nav.helse.spock
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
 import no.nav.helse.rapids_rivers.*
-import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.util.*
 import javax.sql.DataSource
 
 class UtbetalingEndret(rapidsConnection: RapidsConnection,
