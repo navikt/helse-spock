@@ -3,7 +3,7 @@ plugins {
 }
 
 val flywayVersion = "10.7.2"
-val junitJupiterVersion = "5.10.0"
+val junitJupiterVersion = "5.10.2"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 repositories {
