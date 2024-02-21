@@ -29,7 +29,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("org.postgresql:postgresql:42.7.2")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
     testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.02.09-10.44-24d5802f")
