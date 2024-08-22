@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2024082010411724143294.7221e391eba8")
+    implementation("com.github.navikt:rapids-and-rivers:2024082209261724311613.5baa691b9e0a")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -32,7 +32,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.3")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
-    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.05.31-08.02-2c3441c1")
+    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.08.22-09.21-bd982a56")
 
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
