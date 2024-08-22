@@ -34,6 +34,7 @@ spec:
       - type: POSTGRES_15
         diskAutoresize: true
         pointInTimeRecovery: true
+        tier: db-f1-micro
         name: spock
         databases:
           - name: spock
