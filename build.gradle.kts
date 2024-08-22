@@ -1,9 +1,9 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.10"
 }
 
-val flywayVersion = "10.7.2"
-val junitJupiterVersion = "5.10.2"
+val flywayVersion = "10.17.1"
+val junitJupiterVersion = "5.11.0"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 repositories {
@@ -24,15 +24,15 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.navikt:rapids-and-rivers:2024020507581707116327.1c34df474331")
+    implementation("com.github.navikt:rapids-and-rivers:2024082010411724143294.7221e391eba8")
 
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("org.postgresql:postgresql:42.7.2")
+    implementation("org.postgresql:postgresql:42.7.3")
     implementation("com.github.seratch:kotliquery:1.9.0")
 
-    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.02.09-10.44-24d5802f")
+    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:2024.05.31-08.02-2c3441c1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
