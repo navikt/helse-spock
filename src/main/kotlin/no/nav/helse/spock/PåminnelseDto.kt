@@ -1,10 +1,9 @@
 package no.nav.helse.spock
 
-import no.nav.helse.rapids_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import javax.sql.DataSource
 
 class PåminnelseDto(val id: String,
                     val aktørId: String,

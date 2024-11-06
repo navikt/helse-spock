@@ -1,8 +1,8 @@
 package no.nav.helse.spock
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.test_support.TestDataSource
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spock.UtbetalingPåminnelser.Utbetalingpåminnelse.Companion.nestePåminnelsetidspunkt
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*

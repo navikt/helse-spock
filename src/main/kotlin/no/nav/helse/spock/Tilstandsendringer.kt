@@ -1,7 +1,12 @@
 package no.nav.helse.spock
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.*
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import org.slf4j.LoggerFactory
 import java.time.DayOfWeek.*
 import java.time.LocalDate
@@ -9,8 +14,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
 import kotlin.math.abs
-import kotlin.math.min
-import kotlin.random.Random
 
 class Tilstandsendringer(
     rapidsConnection: RapidsConnection,
