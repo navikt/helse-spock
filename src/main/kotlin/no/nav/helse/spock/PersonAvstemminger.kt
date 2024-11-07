@@ -8,6 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import net.logstash.logback.argument.StructuredArguments.keyValue
+import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spock.Tilstandsendringer.TilstandsendringEventDto.Companion.nestePåminnelsetidspunkt
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -24,7 +25,7 @@ internal class PersonAvstemminger(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "person_avstemt")
-                it.requireKey("aktørId", "fødselsnummer")
+                it.requireKey("fødselsnummer")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id", JsonNode::asUUID)
                 it.requireArray("arbeidsgivere") {
@@ -51,14 +52,9 @@ internal class PersonAvstemminger(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val aktørId = packet["aktørId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val opprettet = packet["@opprettet"].asLocalDateTime()
-        sikkerLogg.info(
-            "Avstemmer spock mot resultat fra spleis sendt $opprettet",
-            keyValue("aktørId", aktørId),
-            keyValue("fødselsnummer", fødselsnummer)
-        )
+        sikkerLogg.info("Avstemmer spock mot resultat fra spleis sendt $opprettet", kv("fødselsnummer", fødselsnummer))
 
         packet["arbeidsgivere"].forEach { arbeidsgiver ->
             val organisasjonsnummer = arbeidsgiver.path("organisasjonsnummer").asText()
@@ -67,7 +63,6 @@ internal class PersonAvstemminger(
                 val endringstidspunkt = vedtaksperiode.path("oppdatert").asLocalDateTime()
                 lagreTilstandsendring(
                     dataSource,
-                    aktørId,
                     fødselsnummer,
                     organisasjonsnummer,
                     vedtaksperiode.path("id").asText(),
@@ -82,7 +77,6 @@ internal class PersonAvstemminger(
             }
             arbeidsgiver.path("utbetalinger").forEach { utbetaling ->
                 UtbetalingPåminnelser.Utbetalingpåminnelse(
-                    aktørId = aktørId,
                     fødselsnummer = fødselsnummer,
                     organisasjonsnummer = organisasjonsnummer,
                     utbetalingId = utbetaling.path("id").asUUID(),
@@ -94,11 +88,7 @@ internal class PersonAvstemminger(
             }
         }
 
-        sikkerLogg.info(
-            "Avstemming utført",
-            keyValue("aktørId", aktørId),
-            keyValue("fødselsnummer", fødselsnummer)
-        )
+        sikkerLogg.info("Avstemming utført", kv("fødselsnummer", fødselsnummer))
     }
 
 }

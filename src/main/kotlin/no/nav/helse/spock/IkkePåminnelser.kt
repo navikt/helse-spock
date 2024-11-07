@@ -22,7 +22,7 @@ internal class IkkePåminnelser(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "vedtaksperiode_ikke_påminnet")
-                it.requireKey("aktørId", "fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "tilstand")
+                it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "tilstand")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
         }.register(this)
@@ -33,7 +33,6 @@ internal class IkkePåminnelser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val aktørId = packet["aktørId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val organisasjonsnummer = packet["organisasjonsnummer"].asText()
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
@@ -41,7 +40,6 @@ internal class IkkePåminnelser(
         val opprettet = packet["@opprettet"].asLocalDateTime()
         lagreTilstandsendring(
             dataSource,
-            aktørId,
             fødselsnummer,
             organisasjonsnummer,
             vedtaksperiodeId,

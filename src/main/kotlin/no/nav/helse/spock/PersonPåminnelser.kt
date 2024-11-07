@@ -41,38 +41,36 @@ class PersonPåminnelser(
         }
     }
 
-    private fun hentPåminnelser(dataSource: DataSource, block: (List<Pair<Long, String>>) -> Unit) {
+    private fun hentPåminnelser(dataSource: DataSource, block: (List<Long>) -> Unit) {
         sessionOf(dataSource).use { session ->
             session.transaction { tx ->
                 tx.run(
                     queryOf(
-                        "SELECT fnr, aktor_id FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000 FOR UPDATE SKIP LOCKED;"
+                        "SELECT fnr FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000 FOR UPDATE SKIP LOCKED;"
                     ).map {
-                        it.long("fnr") to it.string("aktor_id")
+                        it.long("fnr")
                     }.asList
                 )
                     .takeUnless { it.isEmpty() }
                     ?.also(block)
                     ?.also { personer ->
-                        val fødselsnummer = personer.map { it.first }
                         tx.run(queryOf("""
                             UPDATE person SET neste_paminnelsetidspunkt = NULL
-                            WHERE fnr IN(${fødselsnummer.joinToString { "?" }})
-                        """, *fødselsnummer.toTypedArray()).asExecute)
+                            WHERE fnr IN(${personer.joinToString { "?" }})
+                        """, *personer.toTypedArray()).asExecute)
                     }
             }
         }
     }
 
-    private fun Pair<Long, String>.send(context: MessageContext) {
+    private fun Long.send(context: MessageContext) {
         val now = LocalDateTime.now()
-        val fnr = first.toString().padStart(11, '0')
+        val fnr = toString().padStart(11, '0')
         context.publish(fnr, JsonMessage.newMessage(mapOf(
                 "@id" to UUID.randomUUID(),
                 "@event_name" to "person_påminnelse",
                 "@opprettet" to "$now",
-                "fødselsnummer" to fnr,
-                "aktørId" to second
+                "fødselsnummer" to fnr
         )).toJson())
     }
 }

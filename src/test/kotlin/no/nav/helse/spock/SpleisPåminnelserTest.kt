@@ -144,7 +144,6 @@ internal class SpleisPåminnelserTest {
     ) = JsonMessage.newMessage(
         mapOf(
             "@event_name" to "vedtaksperiode_endret",
-            "aktørId" to "1234567890123",
             "fødselsnummer" to "01019000000",
             "organisasjonsnummer" to "123456789",
             "vedtaksperiodeId" to vedtaksperiodeId.toString(),
@@ -162,7 +161,6 @@ internal class SpleisPåminnelserTest {
         mapOf(
             "@event_name" to "person_avstemt",
             "@id" to UUID.randomUUID().toString(),
-            "aktørId" to "1234567890123",
             "fødselsnummer" to "01019000000",
             "arbeidsgivere" to listOf(
                 mapOf(
@@ -191,7 +189,6 @@ internal class SpleisPåminnelserTest {
     ) = JsonMessage.newMessage(
         mapOf(
             "@event_name" to "vedtaksperiode_ikke_påminnet",
-            "aktørId" to "1234567890123",
             "fødselsnummer" to "01019000000",
             "organisasjonsnummer" to "123456789",
             "vedtaksperiodeId" to vedtaksperiodeId.toString(),
@@ -205,12 +202,11 @@ internal class SpleisPåminnelserTest {
             session.transaction { tx ->
                 tx.run(
                     queryOf(
-                        "SELECT id, aktor_id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                        "SELECT id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
                                 "FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId.toString()
                     ).map {
                         PåminnelseDto(
                             id = it.string("id"),
-                            aktørId = it.string("aktor_id"),
                             fødselsnummer = it.string("fnr"),
                             organisasjonsnummer = it.string("organisasjonsnummer"),
                             vedtaksperiodeId = it.string("vedtaksperiode_id"),

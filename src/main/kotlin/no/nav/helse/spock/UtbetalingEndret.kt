@@ -22,7 +22,7 @@ class UtbetalingEndret(rapidsConnection: RapidsConnection,
             validate {
                 it.demandValue("@event_name", "utbetaling_endret")
                 it.rejectValue("type", "FERIEPENGER")
-                it.requireKey("aktørId", "fødselsnummer", "organisasjonsnummer", "utbetalingId")
+                it.requireKey("fødselsnummer", "organisasjonsnummer", "utbetalingId")
                 it.requireAny("type", listOf("UTBETALING", "ANNULLERING", "ETTERUTBETALING", "REVURDERING"))
                 it.requireAny("gjeldendeStatus", listOf(
                     "IKKE_UTBETALT", "FORKASTET", "IKKE_GODKJENT",

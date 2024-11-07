@@ -7,7 +7,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.rapids_rivers.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -53,7 +52,6 @@ class UtbetalingPåminnelser(
         return sessionOf(dataSource).use {
             it.run(queryOf(stmt).map { row ->
                 Utbetalingpåminnelse(
-                        aktørId = row.string("aktor_id"),
                         fødselsnummer = row.string("fnr"),
                         organisasjonsnummer = row.string("orgnr"),
                         utbetalingId = UUID.fromString(row.string("id")),
@@ -69,7 +67,6 @@ class UtbetalingPåminnelser(
     }
 
     internal class Utbetalingpåminnelse(
-            private val aktørId: String,
             private val fødselsnummer: String,
             private val organisasjonsnummer: String,
             private val utbetalingId: UUID,
@@ -81,7 +78,7 @@ class UtbetalingPåminnelser(
             private val antallGangerPåminnet: Int = 0
     ) {
         internal fun lagre(dataSource: DataSource, overskriv: Boolean = false) {
-            lagrePerson(dataSource, fødselsnummer, aktørId, endringstidspunkt)
+            lagrePerson(dataSource, fødselsnummer, endringstidspunkt)
             if (overskriv) return overskriv(dataSource)
             overskrivHvisNyere(dataSource)
         }
@@ -98,9 +95,9 @@ class UtbetalingPåminnelser(
         private fun overskriv(dataSource: DataSource, where: String) {
             @Language("PostgreSQL")
             val statement = """
-            INSERT INTO utbetaling (id, aktor_id, fnr, orgnr, type,
+            INSERT INTO utbetaling (id, fnr, orgnr, type,
                 status, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data)
-            VALUES (:id, :aktorId, :fnr, :orgnr, CAST(:type as utbetaling_type), :status, :endringstidspunkt,
+            VALUES (:id, :fnr, :orgnr, CAST(:type as utbetaling_type), :status, :endringstidspunkt,
                 :endringstidspunktNanos, :nestePaminnelsetidspunkt, to_json(:data::json))
             ON CONFLICT (id) DO UPDATE SET
                 status=EXCLUDED.status,
@@ -115,7 +112,6 @@ class UtbetalingPåminnelser(
             sessionOf(dataSource).use {
                 it.run(queryOf(statement, mapOf(
                     "id" to utbetalingId,
-                    "aktorId" to aktørId,
                     "fnr" to fødselsnummer,
                     "orgnr" to organisasjonsnummer,
                     "type" to type,
@@ -151,7 +147,6 @@ class UtbetalingPåminnelser(
                     "@id" to UUID.randomUUID(),
                     "@event_name" to "utbetalingpåminnelse",
                     "@opprettet" to "$now",
-                    "aktørId" to aktørId,
                     "fødselsnummer" to fødselsnummer,
                     "organisasjonsnummer" to organisasjonsnummer,
                     "utbetalingId" to utbetalingId,
@@ -172,7 +167,6 @@ class UtbetalingPåminnelser(
             internal fun opprett(packet: JsonMessage, dataSource: DataSource): Utbetalingpåminnelse {
                 val endringstidspunkt = packet["@opprettet"].asLocalDateTime()
                 val påminnelse = Utbetalingpåminnelse(
-                        aktørId = packet["aktørId"].asText(),
                         fødselsnummer = packet["fødselsnummer"].asText(),
                         organisasjonsnummer = packet["organisasjonsnummer"].asText(),
                         utbetalingId = UUID.fromString(packet["utbetalingId"].asText()),

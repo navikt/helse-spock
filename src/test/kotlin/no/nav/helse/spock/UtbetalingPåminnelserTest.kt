@@ -156,7 +156,6 @@ internal class UtbetalingPåminnelserTest {
             mapOf(
                 "@event_name" to "utbetaling_endret",
                 "@opprettet" to "$endringstidspunkt",
-                "aktørId" to "1234567890123",
                 "fødselsnummer" to "01019000000",
                 "organisasjonsnummer" to "123456789",
                 "utbetalingId" to utbetalingId.toString(),

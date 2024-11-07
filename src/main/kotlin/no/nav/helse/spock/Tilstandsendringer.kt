@@ -29,10 +29,7 @@ class Tilstandsendringer(
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
             validate {
-                it.requireKey(
-                    "aktørId", "fødselsnummer",
-                    "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand"
-                )
+                it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand")
             }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
         }.register(this)
@@ -47,7 +44,6 @@ class Tilstandsendringer(
     }
 
     class TilstandsendringEventDto(packet: JsonMessage) {
-        val aktørId = packet["aktørId"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val organisasjonsnummer = packet["organisasjonsnummer"].asText()
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
@@ -58,7 +54,6 @@ class Tilstandsendringer(
         fun lagreTilstandsendring(dataSource: DataSource) {
             lagreTilstandsendring(
                 dataSource,
-                aktørId,
                 fødselsnummer,
                 organisasjonsnummer,
                 vedtaksperiodeId,

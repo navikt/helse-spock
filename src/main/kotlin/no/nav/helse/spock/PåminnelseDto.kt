@@ -5,15 +5,15 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class PåminnelseDto(val id: String,
-                    val aktørId: String,
-                    val fødselsnummer: String,
-                    val organisasjonsnummer: String,
-                    val vedtaksperiodeId: String,
-                    val tilstand: String,
-                    val endringstidspunkt: LocalDateTime,
-                    val antallGangerPåminnet: Int,
-                    val ønskerReberegning: Boolean = false
+data class PåminnelseDto(
+    val id: String,
+    val fødselsnummer: String,
+    val organisasjonsnummer: String,
+    val vedtaksperiodeId: String,
+    val tilstand: String,
+    val endringstidspunkt: LocalDateTime,
+    val antallGangerPåminnet: Int,
+    val ønskerReberegning: Boolean = false
 ) {
 
     val påminnelsestidspunkt = LocalDateTime.now()
@@ -28,7 +28,6 @@ class PåminnelseDto(val id: String,
         "@id" to UUID.randomUUID(),
         "@event_name" to "påminnelse",
         "@opprettet" to påminnelsestidspunkt,
-        "aktørId" to aktørId,
         "fødselsnummer" to fødselsnummer,
         "organisasjonsnummer" to organisasjonsnummer,
         "vedtaksperiodeId" to vedtaksperiodeId,
@@ -40,11 +39,4 @@ class PåminnelseDto(val id: String,
         "ønskerReberegning" to ønskerReberegning,
         "timeout_første_påminnelse" to timeout
     )).toJson()
-
-    override fun toString(): String {
-        return "PåminnelseDto(id='$id', aktørId='$aktørId', fødselsnummer='$fødselsnummer', " +
-                "organisasjonsnummer='$organisasjonsnummer', vedtaksperiodeId='$vedtaksperiodeId', " +
-                "tilstand='$tilstand', timeout=$timeout, endringstidspunkt=$endringstidspunkt, " +
-                "nestePåminnelsestidspunkt=$nestePåminnelsetidspunkt, antallGangerPåminnet=$antallGangerPåminnet)"
-    }
 }
