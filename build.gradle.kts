@@ -5,7 +5,7 @@ plugins {
 val rapidsAndRiversVersion = "2024110520091730833744.40f3b6aa7090"
 val tbdLibsVersion = "2024.11.06-12.37-f870e704"
 val flywayVersion = "10.17.1"
-val junitJupiterVersion = "5.11.0"
+val junitJupiterVersion = "5.11.3"
 val mainClass = "no.nav.helse.spock.AppKt"
 
 repositories {
