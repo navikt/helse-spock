@@ -29,7 +29,7 @@ class Tilstandsendringer(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
+            precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
             validate {
                 it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand")
             }

@@ -20,8 +20,8 @@ internal class BogusPåminnelser(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "vedtaksperiode_ikke_funnet") }
             validate {
-                it.demandValue("@event_name", "vedtaksperiode_ikke_funnet")
                 it.requireKey("vedtaksperiodeId")
             }
         }.register(this)

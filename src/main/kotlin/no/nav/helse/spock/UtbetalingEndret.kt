@@ -21,9 +21,11 @@ class UtbetalingEndret(rapidsConnection: RapidsConnection,
 
     init {
         River(rapidsConnection).apply {
+            precondition {
+                it.requireValue("@event_name", "utbetaling_endret")
+                it.forbidValue("type", "FERIEPENGER")
+            }
             validate {
-                it.demandValue("@event_name", "utbetaling_endret")
-                it.rejectValue("type", "FERIEPENGER")
                 it.requireKey("fødselsnummer", "organisasjonsnummer", "utbetalingId")
                 it.requireAny("type", listOf("UTBETALING", "ANNULLERING", "ETTERUTBETALING", "REVURDERING"))
                 it.requireAny("gjeldendeStatus", listOf(

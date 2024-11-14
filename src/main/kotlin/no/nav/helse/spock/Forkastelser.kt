@@ -20,8 +20,8 @@ internal class Forkastelser(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
             validate {
-                it.demandValue("@event_name", "vedtaksperiode_forkastet")
                 it.requireKey("vedtaksperiodeId")
             }
         }.register(this)

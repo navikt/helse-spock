@@ -21,8 +21,8 @@ class Påminnelser(
 
     init {
         River(rapidsConnection)
-            .validate {
-                it.demandAny("@event_name", listOf("minutt", "kjør_spock"))
+            .precondition {
+                it.requireAny("@event_name", listOf("minutt", "kjør_spock"))
             }
             .register(this)
     }

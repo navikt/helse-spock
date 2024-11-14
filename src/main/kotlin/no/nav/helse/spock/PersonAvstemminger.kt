@@ -25,8 +25,8 @@ internal class PersonAvstemminger(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "person_avstemt") }
             validate {
-                it.demandValue("@event_name", "person_avstemt")
                 it.requireKey("fødselsnummer")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id", JsonNode::asUUID)

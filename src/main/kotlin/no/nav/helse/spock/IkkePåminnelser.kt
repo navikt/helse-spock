@@ -22,8 +22,8 @@ internal class IkkePåminnelser(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "vedtaksperiode_ikke_påminnet") }
             validate {
-                it.demandValue("@event_name", "vedtaksperiode_ikke_påminnet")
                 it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "tilstand")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
