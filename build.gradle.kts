@@ -2,8 +2,8 @@ plugins {
     kotlin("jvm") version "2.0.21"
 }
 
-val rapidsAndRiversVersion = "2024111411041731578641.814e834a9ecd"
-val tbdLibsVersion = "2024.11.14-10.46-bc229a23"
+val rapidsAndRiversVersion = "2024111509181731658731.11009b44c672"
+val tbdLibsVersion = "2024.11.15-09.09-08ca346b"
 val flywayVersion = "10.17.1"
 val junitJupiterVersion = "5.11.3"
 val mainClass = "no.nav.helse.spock.AppKt"
