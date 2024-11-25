@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
 }
 
-val rapidsAndRiversVersion = "2024112412131732446804.1b3dcc636bed"
+val rapidsAndRiversVersion = "2024112510241732526640.8542991368ca"
 val tbdLibsVersion = "2024.11.24-12.01-42fdc22d"
 val flywayVersion = "10.21.0"
 val postgresqlVersion = "42.7.4"
