@@ -36,7 +36,10 @@ data class PåminnelseDto(
         "antallGangerPåminnet" to antallGangerPåminnet,
         "påminnelsestidspunkt" to påminnelsestidspunkt,
         "nestePåminnelsestidspunkt" to nestePåminnelsetidspunkt,
-        "ønskerReberegning" to ønskerReberegning,
+        "flagg" to when (ønskerReberegning) {
+            true -> listOf("ønskerReberegning")
+            false -> emptyList()
+        },
         "timeout_første_påminnelse" to timeout
     )).toJson()
 }
