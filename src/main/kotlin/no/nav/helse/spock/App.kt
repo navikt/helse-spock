@@ -20,7 +20,6 @@ fun launchApp(env: Map<String, String>) {
 
     RapidApplication.create(env).apply {
         Forkastelser(this, dataSource)
-        BogusPåminnelser(this, dataSource)
         Tilstandsendringer(this, dataSource)
         IkkePåminnelser(this, dataSource)
         Påminnelser(this, dataSource)
