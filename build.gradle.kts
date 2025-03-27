@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
+    kotlin("jvm") version "2.1.20"
 }
 
 val rapidsAndRiversVersion = "2025012712551737978926.de930d8e0feb"
