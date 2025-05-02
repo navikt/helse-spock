@@ -30,6 +30,12 @@ data class PåminnelseDto(
         "@opprettet" to påminnelsestidspunkt,
         "fødselsnummer" to fødselsnummer,
         "organisasjonsnummer" to organisasjonsnummer,
+        "yrkesaktivitetstype" to when (val type = organisasjonsnummer.uppercase()) {
+            "ARBEIDSLEDIG",
+            "SELVSTENDIG",
+            "FRILANS" -> type
+            else -> "ARBEIDSTAKER"
+        },
         "vedtaksperiodeId" to vedtaksperiodeId,
         "tilstand" to tilstand,
         "tilstandsendringstidspunkt" to endringstidspunkt,
