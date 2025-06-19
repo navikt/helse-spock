@@ -2,6 +2,7 @@ package no.nav.helse.spock
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -16,7 +17,7 @@ data class PåminnelseDto(
     val ønskerReberegning: Boolean = false
 ) {
 
-    val påminnelsestidspunkt = LocalDateTime.now()
+    val påminnelsestidspunkt = LocalDateTime.now(ZoneId.of("Europe/Oslo"))
     val nestePåminnelsetidspunkt = Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(tilstand, påminnelsestidspunkt, antallGangerPåminnet)
     // forventet tid i tilstand er tiden mellom endringstidspunktet og påminnelse nr 1
     val timeout = ChronoUnit.SECONDS.between(
