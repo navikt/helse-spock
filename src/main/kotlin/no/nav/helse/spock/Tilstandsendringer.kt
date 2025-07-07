@@ -92,6 +92,7 @@ class Tilstandsendringer(
 
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
+                    "TIL_ANNULLERING",
                     "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
 
                     "START",
