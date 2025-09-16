@@ -85,6 +85,7 @@ class Tilstandsendringer(
                     "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
+                    "AVVENTER_A_ORDNINGEN",
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
