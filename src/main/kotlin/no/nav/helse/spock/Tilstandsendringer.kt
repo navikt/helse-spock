@@ -9,13 +9,15 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
-import org.slf4j.LoggerFactory
-import java.time.DayOfWeek.*
+import java.time.DayOfWeek.FRIDAY
+import java.time.DayOfWeek.SATURDAY
+import java.time.DayOfWeek.SUNDAY
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
 import kotlin.math.abs
+import org.slf4j.LoggerFactory
 
 class Tilstandsendringer(
     rapidsConnection: RapidsConnection,
@@ -69,7 +71,7 @@ class Tilstandsendringer(
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
-            fun erSluttilstand(tilstand: String) = tilstand in listOf("AVSLUTTET", "TIL_INFOTRYGD")
+            fun erSluttilstand(tilstand: String) = tilstand in listOf("AVSLUTTET", "TIL_INFOTRYGD", "SELVSTENDIG_AVSLUTTET", "SELVSTENDIG_TIL_INFOTRYGD")
 
             fun nestePåminnelsetidspunkt(
                 tilstand: String,
@@ -78,31 +80,40 @@ class Tilstandsendringer(
             ) =
                 when (tilstand) {
                     "AVVENTER_REVURDERING",
-                    "AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
+                    "AVVENTER_BLOKKERENDE_PERIODE",
+                    "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING",
-                    "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
+                    "AVVENTER_INNTEKTSMELDING",
+                    "SELVSTENDIG_AVVENTER_GODKJENNING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
                     "AVVENTER_A_ORDNINGEN",
                     "AVVENTER_VILKÅRSPRØVING",
                     "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                     "AVVENTER_HISTORIKK_REVURDERING",
-                    "AVVENTER_HISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "AVVENTER_HISTORIKK",
+                    "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING",
+                    "SELVSTENDIG_AVVENTER_HISTORIKK",
+                    "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK" -> endringstidspunkt.plusHours(1)
 
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "TIL_ANNULLERING",
-                    "AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
+                    "AVVENTER_SIMULERING",
+                    "SELVSTENDIG_AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
 
                     "START",
+                    "SELVSTENDIG_START",
                     "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                     "REVURDERING_FEILET",
                     "UTBETALING_FEILET",
                     "AVSLUTTET_UTEN_UTBETALING",
                     "TIL_INFOTRYGD",
-                    "AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                    "AVSLUTTET",
+                    "SELVSTENDIG_TIL_INFOTRYGD",
+                    "SELVSTENDIG_AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
 
                     else -> {
                         sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
@@ -118,7 +129,7 @@ class Tilstandsendringer(
                 val kveldstid = (18..23)
                 val nattestid = (0..5)
                 val tilfeldigTime = (nattestid.toList() + kveldstid.toList()).random()
-                val diff = abs( min.hour - tilfeldigTime)
+                val diff = abs(min.hour - tilfeldigTime)
                 val timer = if (tilfeldigTime in kveldstid) diff else (24 - diff)
                 return min.plusHours(timer.toLong()).withMinute((0..59).random())
             }
