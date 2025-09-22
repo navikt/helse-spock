@@ -81,7 +81,8 @@ class Tilstandsendringer(
                 when (tilstand) {
                     "AVVENTER_REVURDERING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
-                    "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE" -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
+                    "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
+                    "AVVENTER_ANNULERING"-> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING",
