@@ -82,7 +82,7 @@ class Tilstandsendringer(
                     "AVVENTER_REVURDERING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
                     "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
-                    "AVVENTER_ANNULERING"-> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
+                    "AVVENTER_ANNULLERING"-> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING",
@@ -113,7 +113,6 @@ class Tilstandsendringer(
                     "AVSLUTTET_UTEN_UTBETALING",
                     "TIL_INFOTRYGD",
                     "AVSLUTTET",
-                    "SELVSTENDIG_TIL_INFOTRYGD",
                     "SELVSTENDIG_AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
 
                     else -> {
