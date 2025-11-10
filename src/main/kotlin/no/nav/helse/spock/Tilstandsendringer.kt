@@ -97,7 +97,9 @@ class Tilstandsendringer(
                     "AVVENTER_HISTORIKK",
                     "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING",
                     "SELVSTENDIG_AVVENTER_HISTORIKK",
-                    "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK" -> endringstidspunkt.plusHours(1)
+                    "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK",
+                    "FRILANS_AVVENTER_INFOTRYGDHISTORIKK",
+                    "ARBEIDSLEDIG_AVVENTER_INFOTRYGDHISTORIKK" -> endringstidspunkt.plusHours(1)
 
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
@@ -107,6 +109,8 @@ class Tilstandsendringer(
 
                     "START",
                     "SELVSTENDIG_START",
+                    "FRILANS_START",
+                    "ARBEIDSLEDIG_START",
                     "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                     "REVURDERING_FEILET",
                     "UTBETALING_FEILET",
