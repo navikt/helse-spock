@@ -81,7 +81,10 @@ class Tilstandsendringer(
                 when (tilstand) {
                     "AVVENTER_REVURDERING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
+                    "AVVENTER_AVSLUTTET_UTEN_UTBETALING",
                     "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
+                    "FRILANS_AVVENTER_BLOKKERENDE_PERIODE",
+                    "ARBEIDSLEDIIG_AVVENTER_BLOKKERENDE_PERIODE",
                     "AVVENTER_ANNULLERING"-> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                     "AVVENTER_GODKJENNING_REVURDERING",
