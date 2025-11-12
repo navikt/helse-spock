@@ -81,6 +81,7 @@ class Tilstandsendringer(
                 when (tilstand) {
                     "AVVENTER_REVURDERING",
                     "AVVENTER_BLOKKERENDE_PERIODE",
+                    "AVVENTER_SØKNAD_FOR_OVERLAPPENDE_PERIODE",
                     "AVVENTER_AVSLUTTET_UTEN_UTBETALING",
                     "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
                     "FRILANS_AVVENTER_BLOKKERENDE_PERIODE",
