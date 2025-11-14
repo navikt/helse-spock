@@ -107,6 +107,7 @@ class Tilstandsendringer(
                     "FRILANS_AVVENTER_INFOTRYGDHISTORIKK",
                     "ARBEIDSLEDIG_AVVENTER_INFOTRYGDHISTORIKK" -> endringstidspunkt.plusHours(1)
 
+                    "AVVENTER_REVURDERING_TIL_UTBETALING",
                     "TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "TIL_ANNULLERING",
