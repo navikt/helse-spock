@@ -110,6 +110,7 @@ class Tilstandsendringer(
                     "AVVENTER_REVURDERING_TIL_UTBETALING",
                     "AVVENTER_ANNULLERING_TIL_UTBETALING",
                     "TIL_UTBETALING",
+                    "SELVSTENDIG_TIL_UTBETALING",
                     "AVVENTER_SIMULERING_REVURDERING",
                     "TIL_ANNULLERING",
                     "AVVENTER_SIMULERING",
