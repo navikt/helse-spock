@@ -23,8 +23,6 @@ fun launchApp(env: Map<String, String>) {
         Tilstandsendringer(this, dataSource)
         IkkePåminnelser(this, dataSource)
         Påminnelser(this, dataSource)
-        UtbetalingEndret(this, dataSource)
-        UtbetalingPåminnelser(this, dataSource)
         PersonAvstemminger(this, dataSource)
         PersonPåminnelser(this, dataSource)
     }.apply {

@@ -9,7 +9,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spock.Tilstandsendringer.TilstandsendringEventDto.Companion.nestePåminnelsetidspunkt
 import org.slf4j.LoggerFactory
@@ -76,17 +75,6 @@ internal class PersonAvstemminger(
             }
             arbeidsgiver.path("forkastedeVedtaksperioder").forEach { vedtaksperiode ->
                 slettPåminnelse(dataSource, vedtaksperiode.path("id").asText())
-            }
-            arbeidsgiver.path("utbetalinger").forEach { utbetaling ->
-                UtbetalingPåminnelser.Utbetalingpåminnelse(
-                    fødselsnummer = fødselsnummer,
-                    organisasjonsnummer = organisasjonsnummer,
-                    utbetalingId = utbetaling.path("id").asUUID(),
-                    type = utbetaling.path("type").asText(),
-                    status = utbetaling.path("status").asText(),
-                    endringstidspunkt = utbetaling.path("oppdatert").asLocalDateTime(),
-                    data = utbetaling.toString()
-                ).lagre(dataSource, overskriv = true)
             }
         }
 
