@@ -93,9 +93,10 @@ class Tilstandsendringer(
 
                     "AVVENTER_GODKJENNING_REVURDERING",
                     "AVVENTER_GODKJENNING",
-                    "AVVENTER_INNTEKTSMELDING",
                     "SELVSTENDIG_AVVENTER_GODKJENNING_REVURDERING",
                     "SELVSTENDIG_AVVENTER_GODKJENNING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
+
+                    "AVVENTER_INNTEKTSMELDING" -> endringstidspunkt.tilfeldigKlokkeslett(35, 37) // påminner ca 1.5 døgn
 
                     "AVVENTER_INFOTRYGDHISTORIKK",
                     "AVVENTER_A_ORDNINGEN",
