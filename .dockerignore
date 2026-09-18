@@ -1,2 +1,5 @@
 *
-!build/libs
+!spock
+!spock/build
+!spock/build/libs
+!spock/build/libs/**
