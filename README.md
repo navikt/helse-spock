@@ -6,6 +6,11 @@ Sender påminnelser for vedtaksperioder som er i en tilstand de kanskje kan komm
 
 Er også ansvarlig for å starte avstemming av persondata. Avstemming av persondata er at Spleis sender ut info om personer som resten av appene kan synke mot.
 
+## Moduler
+Repoet er satt opp som et multi-modul Gradle-prosjekt:
+- `spock/` – selve applikasjonen
+- `opprydding-dev/` – frittstående app for opprydding/sletting av persondata i dev, se egen [README](opprydding-dev/README.md)
+
 ## Henvendelser
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.
 

@@ -43,6 +43,8 @@ spec:
         databases:
           - name: spock
             envVarPrefix: DATABASE
+            users:
+              - name: spock_opprydding_dev
   kafka:
     pool: nav-dev
   env:

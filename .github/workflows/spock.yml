@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'spock/**'
+      - 'deploy/dev.yml'
+      - 'deploy/prod.yml'
+      - '.github/workflows/spock.yml'
   schedule:
     - cron: '0 4 * * 3'
       timezone: 'Europe/Oslo'
+
 jobs:
   build:
     name: build docker image
@@ -18,10 +24,10 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '21.x'
+          java-version: '25.x'
           cache: 'gradle'
-      - name: test and build
-        run: ./gradlew test build
+      - name: test and build spock module
+        run: ./gradlew :spock:test :spock:build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: build docker image
