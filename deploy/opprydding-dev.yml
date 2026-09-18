@@ -43,6 +43,8 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
+  envFrom:
+    - secret: google-sql-spock-spock-spock-opprydding-dev-ef054e0b
   env:
     - name: KAFKA_RAPID_TOPIC
       value: tbd.rapid.v1

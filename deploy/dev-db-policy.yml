@@ -7,7 +7,7 @@ spec:
   egress:
     - to:
         - ipBlock:
-            cidr: 34.88.20.179/32
+            cidr: 35.228.145.103/32
   podSelector:
     matchLabels:
       dbPolicyUser: spock_opprydding_dev
