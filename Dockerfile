@@ -1,6 +1,6 @@
 FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 
-COPY build/libs/*.jar /app/
+COPY spock/build/libs/*.jar /app/
 
 ENV TZ="Europe/Oslo"
 ENV JAVA_OPTS='-XX:MaxRAMPercentage=90'
