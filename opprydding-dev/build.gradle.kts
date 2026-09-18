@@ -43,7 +43,21 @@ kotlin {
 
 tasks {
     withType<Jar> {
-        archiveFileName.set("opprydding-dev.jar")
+        archiveBaseName.set("app")
+
+        manifest {
+            attributes["Main-Class"] = "no.nav.helse.spock.opprydding_dev.AppKt"
+            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
+        }
+
+        doLast {
+            configurations.runtimeClasspath.get().forEach {
+                val file = File("${layout.buildDirectory.get()}/libs/${it.name}")
+                if (!file.exists()) it.copyTo(file)
+            }
+        }
     }
 
     withType<Test> {

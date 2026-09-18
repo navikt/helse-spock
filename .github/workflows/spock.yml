@@ -6,6 +6,13 @@ on:
       - main
     paths:
       - 'spock/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'Dockerfile'
+      - '.dockerignore'
       - 'deploy/dev.yml'
       - 'deploy/prod.yml'
       - '.github/workflows/spock.yml'
@@ -35,6 +42,10 @@ jobs:
         id: docker-build-push
         with:
           team: tbd
+          docker_context: .
+          dockerfile: ./Dockerfile
+          build_args: |
+            MODULE=spock
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
 

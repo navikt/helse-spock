@@ -6,6 +6,13 @@ on:
       - main
     paths:
       - 'opprydding-dev/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'Dockerfile'
+      - '.dockerignore'
       - 'deploy/opprydding-dev.yml'
       - 'deploy/dev-db-policy.yml'
       - '.github/workflows/opprydding-dev.yml'
@@ -40,8 +47,10 @@ jobs:
         id: docker-build-push
         with:
           team: tbd
-          docker_context: ./opprydding-dev
-          dockerfile: ./opprydding-dev/Dockerfile
+          docker_context: .
+          dockerfile: ./Dockerfile
+          build_args: |
+            MODULE=opprydding-dev
           image_suffix: opprydding-dev
 
   deployDev:
