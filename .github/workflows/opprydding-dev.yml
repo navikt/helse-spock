@@ -49,8 +49,7 @@ jobs:
           team: tbd
           docker_context: .
           dockerfile: ./Dockerfile
-          build_args: |
-            MODULE=opprydding-dev
+          target: opprydding-dev
           image_suffix: opprydding-dev
 
   deployDev:

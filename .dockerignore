@@ -1,5 +1,11 @@
 *
+!Dockerfile
+!.dockerignore
 !spock
 !spock/build
 !spock/build/libs
 !spock/build/libs/**
+!opprydding-dev
+!opprydding-dev/build
+!opprydding-dev/build/libs
+!opprydding-dev/build/libs/**

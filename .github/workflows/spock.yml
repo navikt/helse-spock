@@ -44,8 +44,7 @@ jobs:
           team: tbd
           docker_context: .
           dockerfile: ./Dockerfile
-          build_args: |
-            MODULE=spock
+          target: spock
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
 
