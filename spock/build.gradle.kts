@@ -7,6 +7,7 @@ val rapidsAndRiversVersion = "2026011411051768385145.e8ebad1177b4"
 val tbdLibsVersion = "2026.01.22-09.16-1d3f6039"
 val flywayVersion = "11.5.0"
 val postgresqlVersion = "42.7.7"
+val kafkaClientsVersion = "4.1.2"
 val junitJupiterVersion = "5.12.1"
 val hikariCPVersion = "6.3.0"
 val mainClass = "no.nav.helse.spock.AppKt"
@@ -27,6 +28,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.apache.kafka:kafka-clients:$kafkaClientsVersion")
     implementation("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
