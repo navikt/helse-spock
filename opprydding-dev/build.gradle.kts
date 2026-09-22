@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.hikaricp)
     implementation(libs.postgresql)
     implementation(libs.kotliquery)
+    implementation(libs.cloud.sql.postgres.socket.factory)
 
     testImplementation(project(":spock"))
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)

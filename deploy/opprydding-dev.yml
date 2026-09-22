@@ -5,7 +5,7 @@ metadata:
   namespace: tbd
   labels:
     team: tbd
-    dbPolicyUser: spock_opprydding_dev
+    dbPolicyUser: spock-opprydding-dev
 spec:
   port: 8080
   startup:
@@ -20,6 +20,11 @@ spec:
   preStopHook:
     http:
       path: /stop
+  observability:
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
   resources:
     requests:
       cpu: 50m

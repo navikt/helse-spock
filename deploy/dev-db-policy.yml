@@ -10,6 +10,6 @@ spec:
             cidr: 35.228.145.103/32
   podSelector:
     matchLabels:
-      dbPolicyUser: spock_opprydding_dev
+      dbPolicyUser: spock-opprydding-dev
   policyTypes:
     - Egress

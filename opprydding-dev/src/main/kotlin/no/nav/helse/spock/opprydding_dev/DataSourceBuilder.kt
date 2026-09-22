@@ -7,23 +7,33 @@ import java.time.Duration
 internal class DataSourceBuilder(
     env: Map<String, String>,
 ) {
+    private val gcpProjectId: String = env.envValue("GCP_TEAM_PROJECT_ID")
+    private val databaseRegion: String = env.envValue("DATABASE_REGION")
+    private val databaseInstance: String = env.envValue("DATABASE_INSTANCE")
+    private val databaseUsername: String = env.envValue("DATABASE_SPOCK_OPPRYDDING_DEV_USERNAME")
+    private val databasePassword: String = env.envValue("DATABASE_SPOCK_OPPRYDDING_DEV_PASSWORD")
+    private val databaseName: String = env.envValue("DATABASE_SPOCK_OPPRYDDING_DEV_DATABASE")
+
+    private fun Map<String, String>.envValue(key: String) = requireNotNull(get(key)) { "$key must be set" }
+
     private val hikariConfig =
         HikariConfig().apply {
-            jdbcUrl = env["DATABASE_SPOCK_OPPRYDDING_DEV_JDBC_URL"] ?: String.format(
-                "jdbc:postgresql://%s:%s/%s",
-                requireNotNull(env["DATABASE_SPOCK_OPPRYDDING_DEV_HOST"]) { "database host must be set if jdbc url is not provided" },
-                requireNotNull(env["DATABASE_SPOCK_OPPRYDDING_DEV_PORT"]) { "database port must be set if jdbc url is not provided" },
-                requireNotNull(env["DATABASE_SPOCK_OPPRYDDING_DEV_DATABASE"]) { "database name must be set if jdbc url is not provided" },
-            )
-            username = requireNotNull(env["DATABASE_SPOCK_OPPRYDDING_DEV_USERNAME"]) { "databasebrukernavn må settes" }
-            password = requireNotNull(env["DATABASE_SPOCK_OPPRYDDING_DEV_PASSWORD"]) { "databasepassord må settes" }
+            jdbcUrl =
+                "jdbc:postgresql:///%s?%s&%s".format(
+                    databaseName,
+                    "cloudSqlInstance=$gcpProjectId:$databaseRegion:$databaseInstance",
+                    "socketFactory=com.google.cloud.sql.postgres.SocketFactory",
+                )
+            username = databaseUsername
+            password = databasePassword
+
             maximumPoolSize = 3
-            connectionTimeout = Duration.ofSeconds(30).toMillis()
-            maxLifetime = Duration.ofMinutes(30).toMillis()
+            minimumIdle = 1
             initializationFailTimeout = Duration.ofMinutes(1).toMillis()
+            connectionTimeout = Duration.ofSeconds(5).toMillis()
+            maxLifetime = Duration.ofMinutes(30).toMillis()
+            idleTimeout = Duration.ofMinutes(10).toMillis()
         }
 
-    internal fun getDataSource() = dataSource
-
-    private val dataSource by lazy { HikariDataSource(hikariConfig) }
+    internal fun getDataSource() = HikariDataSource(hikariConfig)
 }
