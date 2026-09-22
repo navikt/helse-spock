@@ -3,7 +3,7 @@ sasGradlePlugins = "20260918.1635"
 tbd-libs = "20260917.2152"
 
 [libraries]
-flyway-database-postgresql = "org.flywaydb:flyway-database-postgresql:11.5.0"
+flyway-database-postgresql = "org.flywaydb:flyway-database-postgresql:13.7.0"
 hikaricp = "com.zaxxer:HikariCP:7.1.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.1"
 postgresql = "org.postgresql:postgresql:42.7.12"
