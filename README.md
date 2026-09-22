@@ -1,5 +1,6 @@
 # Spock
-![Bygg og deploy](https://github.com/navikt/helse-spock/workflows/Bygg%20og%20deploy/badge.svg)
+[![main - spock](https://github.com/navikt/helse-spock/actions/workflows/main-spock.yml/badge.svg)](https://github.com/navikt/helse-spock/actions/workflows/main-spock.yml)
+[![main - opprydding-dev](https://github.com/navikt/helse-spock/actions/workflows/main-opprydding-dev.yml/badge.svg)](https://github.com/navikt/helse-spock/actions/workflows/main-opprydding-dev.yml)
 
 ## Beskrivelse
 Sender påminnelser for vedtaksperioder som er i en tilstand de kanskje kan komme seg ut av.

@@ -7,7 +7,6 @@ metadata:
     team: tbd
     dbPolicyUser: spock_opprydding_dev
 spec:
-  image: {{image}}
   port: 8080
   startup:
     path: isready

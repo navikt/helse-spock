@@ -6,7 +6,7 @@ Egen Gradle-modul for opprydding knyttet til Spock-databasen, inspirert av `sp-f
 - egen `App.kt`
 - egen river/listener som reagerer på et event
 - egen datakilde til databasen
-- egen Docker-image, NAIS-app og GitHub Actions-workflow
+- eget image (bygget med jib), egen NAIS-app og egen GitHub Actions-workflow
 
 ## Hva den gjør
 
@@ -29,11 +29,10 @@ Eksempel på event som trigger sletting:
 
 ## Kjøre lokalt
 
-```
-./gradlew :opprydding-dev:run
-```
-
-Krever samme database-miljøvariabler som selve `spock`-appen (`DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_DATABASE`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, eller `DATABASE_JDBC_URL`).
+Start `no.nav.helse.spock.opprydding_dev.AppKt` fra IDE-en. Appen krever enten
+`DATABASE_SPOCK_OPPRYDDING_DEV_JDBC_URL`, eller `DATABASE_SPOCK_OPPRYDDING_DEV_HOST`,
+`DATABASE_SPOCK_OPPRYDDING_DEV_PORT` og `DATABASE_SPOCK_OPPRYDDING_DEV_DATABASE`. I tillegg må
+`DATABASE_SPOCK_OPPRYDDING_DEV_USERNAME` og `DATABASE_SPOCK_OPPRYDDING_DEV_PASSWORD` være satt.
 
 ## Teste
 
@@ -45,8 +44,7 @@ Testene bruker Testcontainers (krever Docker) og gjenbruker databasemigreringene
 
 ## Bygge og deploye
 
-Bygging, testing og deploy til dev skjer via `.github/workflows/opprydding-dev.yml`, som trigges av endringer i:
-- `opprydding-dev/**`
+Bygging, testing og deploy til dev skjer via `.github/workflows/main-opprydding-dev.yml`, som trigges av endringer i koden og i:
 - `deploy/opprydding-dev.yml`
 - `deploy/dev-db-policy.yml`
 
