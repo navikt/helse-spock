@@ -4,7 +4,7 @@ tbd-libs = "2026.01.22-09.16-1d3f6039"
 
 [libraries]
 flyway-database-postgresql = "org.flywaydb:flyway-database-postgresql:11.5.0"
-hikaricp = "com.zaxxer:HikariCP:6.3.0"
+hikaricp = "com.zaxxer:HikariCP:7.1.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.0"
 postgresql = "org.postgresql:postgresql:42.7.7"
 rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026011411051768385145.e8ebad1177b4"
