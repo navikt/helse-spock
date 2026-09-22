@@ -20,6 +20,7 @@ on:
       # Spesielt for denne tjenesten ellers
       - '!.github/workflows/standard-pr.yml'
       - '!.github/workflows/main-spock.yml'
+      - '!spock/**'
   schedule:
     - cron: '0 4 * * 3'
       timezone: 'Europe/Oslo'
