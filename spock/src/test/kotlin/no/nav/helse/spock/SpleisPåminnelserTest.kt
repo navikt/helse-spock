@@ -17,20 +17,20 @@ import java.util.*
 import javax.sql.DataSource
 
 internal class SpleisPåminnelserTest {
-
     private lateinit var rapid: TestRapid
     private lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun setup() {
         dataSource = databaseContainer.nyTilkobling()
-        rapid = TestRapid().apply {
-            Forkastelser(this, dataSource.ds)
-            Tilstandsendringer(this, dataSource.ds)
-            IkkePåminnelser(this, dataSource.ds)
-            Påminnelser(this, dataSource.ds)
-            PersonAvstemminger(this, dataSource.ds)
-        }
+        rapid =
+            TestRapid().apply {
+                Forkastelser(this, dataSource.ds)
+                Tilstandsendringer(this, dataSource.ds)
+                IkkePåminnelser(this, dataSource.ds)
+                Påminnelser(this, dataSource.ds)
+                PersonAvstemminger(this, dataSource.ds)
+            }
     }
 
     @AfterEach
@@ -44,9 +44,10 @@ internal class SpleisPåminnelserTest {
         val tilstand = "AVVENTER_HISTORIKK"
         val now = LocalDateTime.now()
         val nestePåminnelsetidspunkt = Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(tilstand, now, 0)
-        val endringstidspunkt = now
-            .minusSeconds(ChronoUnit.SECONDS.between(now, nestePåminnelsetidspunkt))
-            .minusSeconds(1)
+        val endringstidspunkt =
+            now
+                .minusSeconds(ChronoUnit.SECONDS.between(now, nestePåminnelsetidspunkt))
+                .minusSeconds(1)
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(kjørSpock())
         val påminnelse = rapid.inspektør.message(rapid.inspektør.size - 1)
@@ -62,8 +63,8 @@ internal class SpleisPåminnelserTest {
             tilstandsendringsevent(
                 vedtaksperiodeId,
                 "AVVENTER_INNTEKTSMELDING_FERDIG_GAP",
-                LocalDate.EPOCH.atStartOfDay()
-            )
+                LocalDate.EPOCH.atStartOfDay(),
+            ),
         )
         assertEquals(1, hentAntallPåminnelser(vedtaksperiodeId))
 
@@ -75,9 +76,10 @@ internal class SpleisPåminnelserTest {
     fun `retter tilstand når påminnelse var uaktuell`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
-        val endringstidspunkt = LocalDateTime
-            .now()
-            .minusHours(24)
+        val endringstidspunkt =
+            LocalDateTime
+                .now()
+                .minusHours(24)
         val nyttTidspunkt = LocalDateTime.now()
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
@@ -92,9 +94,10 @@ internal class SpleisPåminnelserTest {
     fun `fikser tilstand fra avstemmingsresultat`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val tilstand = "AVVENTER_SØKNAD_UFERDIG_GAP"
-        val endringstidspunkt = LocalDateTime
-            .now()
-            .minusHours(24)
+        val endringstidspunkt =
+            LocalDateTime
+                .now()
+                .minusHours(24)
         val nyttTidspunkt = LocalDateTime.now()
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(avstemming(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
@@ -119,17 +122,20 @@ internal class SpleisPåminnelserTest {
         assertEquals(tilstand, påminnelse.tilstand)
     }
 
-    private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) = sessionOf(dataSource.ds).use { session ->
-        session.run(queryOf(
-            "SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;",
-            vedtaksperiodeId.toString()
-        )
-            .map { it.long("vedtaksperiode_count") }
-            .asSingle)
-    }
+    private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) =
+        sessionOf(dataSource.ds).use { session ->
+            session.run(
+                queryOf(
+                    "SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;",
+                    vedtaksperiodeId.toString(),
+                ).map { it.long("vedtaksperiode_count") }
+                    .asSingle,
+            )
+        }
 
     @Language("JSON")
-    private fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) = """{
+    private fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) =
+        """{
             "@event_name": "vedtaksperiode_forkastet",
             "hendelseId": "030001BD-8FBA-4324-9725-D618CE5B83E9",
             "vedtaksperiodeId": "$vedtaksperiodeId"
@@ -140,84 +146,95 @@ internal class SpleisPåminnelserTest {
     private fun tilstandsendringsevent(
         vedtaksperiodeId: UUID,
         tilstand: String,
-        endringstidspunkt: LocalDateTime
-    ) = JsonMessage.newMessage(
-        mapOf(
-            "@event_name" to "vedtaksperiode_endret",
-            "fødselsnummer" to "01019000000",
-            "organisasjonsnummer" to "123456789",
-            "vedtaksperiodeId" to vedtaksperiodeId.toString(),
-            "gjeldendeTilstand" to tilstand,
-            "forrigeTilstand" to "START",
-            "@opprettet" to "$endringstidspunkt"
-        )
-    ).toJson()
+        endringstidspunkt: LocalDateTime,
+    ) = JsonMessage
+        .newMessage(
+            mapOf(
+                "@event_name" to "vedtaksperiode_endret",
+                "fødselsnummer" to "01019000000",
+                "organisasjonsnummer" to "123456789",
+                "vedtaksperiodeId" to vedtaksperiodeId.toString(),
+                "gjeldendeTilstand" to tilstand,
+                "forrigeTilstand" to "START",
+                "@opprettet" to "$endringstidspunkt",
+            ),
+        ).toJson()
 
     private fun avstemming(
         vedtaksperiodeId: UUID,
         tilstand: String,
-        endringstidspunkt: LocalDateTime
-    ) = JsonMessage.newMessage(
-        mapOf(
-            "@event_name" to "person_avstemt",
-            "@id" to UUID.randomUUID().toString(),
-            "fødselsnummer" to "01019000000",
-            "arbeidsgivere" to listOf(
-                mapOf(
-                    "organisasjonsnummer" to "123456789",
-                    "vedtaksperioder" to listOf(
+        endringstidspunkt: LocalDateTime,
+    ) = JsonMessage
+        .newMessage(
+            mapOf(
+                "@event_name" to "person_avstemt",
+                "@id" to UUID.randomUUID().toString(),
+                "fødselsnummer" to "01019000000",
+                "arbeidsgivere" to
+                    listOf(
                         mapOf(
-                            "id" to vedtaksperiodeId.toString(),
-                            "tilstand" to tilstand,
-                            "opprettet" to "${endringstidspunkt.minusDays(1)}",
-                            "oppdatert" to "$endringstidspunkt"
-                        )
+                            "organisasjonsnummer" to "123456789",
+                            "vedtaksperioder" to
+                                listOf(
+                                    mapOf(
+                                        "id" to vedtaksperiodeId.toString(),
+                                        "tilstand" to tilstand,
+                                        "opprettet" to "${endringstidspunkt.minusDays(1)}",
+                                        "oppdatert" to "$endringstidspunkt",
+                                    ),
+                                ),
+                            "forkastedeVedtaksperioder" to emptyList<Map<String, Any>>(),
+                            "utbetalinger" to emptyList<Map<String, Any>>(),
+                        ),
                     ),
-                    "forkastedeVedtaksperioder" to emptyList<Map<String, Any>>(),
-                    "utbetalinger" to emptyList<Map<String, Any>>()
-
-                )
+                "@opprettet" to "$endringstidspunkt",
             ),
-            "@opprettet" to "$endringstidspunkt"
-        )
-    ).toJson()
+        ).toJson()
 
     private fun ikkePåminnelseEvent(
         vedtaksperiodeId: UUID,
         tilstand: String,
-        endringstidspunkt: LocalDateTime
-    ) = JsonMessage.newMessage(
-        mapOf(
-            "@event_name" to "vedtaksperiode_ikke_påminnet",
-            "fødselsnummer" to "01019000000",
-            "organisasjonsnummer" to "123456789",
-            "vedtaksperiodeId" to vedtaksperiodeId.toString(),
-            "tilstand" to tilstand,
-            "@opprettet" to "$endringstidspunkt"
-        )
-    ).toJson()
+        endringstidspunkt: LocalDateTime,
+    ) = JsonMessage
+        .newMessage(
+            mapOf(
+                "@event_name" to "vedtaksperiode_ikke_påminnet",
+                "fødselsnummer" to "01019000000",
+                "organisasjonsnummer" to "123456789",
+                "vedtaksperiodeId" to vedtaksperiodeId.toString(),
+                "tilstand" to tilstand,
+                "@opprettet" to "$endringstidspunkt",
+            ),
+        ).toJson()
 
-    private fun hentPåminnelseFraDatabasen(dataSource: DataSource, vedtaksperiodeId: UUID): PåminnelseDto {
-        return requireNotNull(sessionOf(dataSource).use { session ->
-            session.transaction { tx ->
-                tx.run(
-                    queryOf(
-                        "SELECT id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
-                                "FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId.toString()
-                    ).map {
-                        PåminnelseDto(
-                            id = it.string("id"),
-                            fødselsnummer = it.string("fnr"),
-                            organisasjonsnummer = it.string("organisasjonsnummer"),
-                            vedtaksperiodeId = it.string("vedtaksperiode_id"),
-                            tilstand = it.string("tilstand"),
-                            endringstidspunkt = it.localDateTime("endringstidspunkt")
-                                .withNano(it.int("endringstidspunkt_nanos")),
-                            antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1
-                        )
-                    }.asSingle
-                )
-            }
-        }) { "Fant ikke påminnelse for vedtaksperiodeId=$vedtaksperiodeId" }
-    }
+    private fun hentPåminnelseFraDatabasen(
+        dataSource: DataSource,
+        vedtaksperiodeId: UUID,
+    ): PåminnelseDto =
+        requireNotNull(
+            sessionOf(dataSource).use { session ->
+                session.transaction { tx ->
+                    tx.run(
+                        queryOf(
+                            "SELECT id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, antall_ganger_paminnet, neste_paminnelsetidspunkt " +
+                                "FROM paminnelse WHERE vedtaksperiode_id = ?",
+                            vedtaksperiodeId.toString(),
+                        ).map {
+                            PåminnelseDto(
+                                id = it.string("id"),
+                                fødselsnummer = it.string("fnr"),
+                                organisasjonsnummer = it.string("organisasjonsnummer"),
+                                vedtaksperiodeId = it.string("vedtaksperiode_id"),
+                                tilstand = it.string("tilstand"),
+                                endringstidspunkt =
+                                    it
+                                        .localDateTime("endringstidspunkt")
+                                        .withNano(it.int("endringstidspunkt_nanos")),
+                                antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1,
+                            )
+                        }.asSingle,
+                    )
+                }
+            },
+        ) { "Fant ikke påminnelse for vedtaksperiodeId=$vedtaksperiodeId" }
 }

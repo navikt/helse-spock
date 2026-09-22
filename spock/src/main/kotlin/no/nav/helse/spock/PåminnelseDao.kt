@@ -8,7 +8,11 @@ import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
-internal fun lagrePerson(dataSource: DataSource, fødselsnummer: String, tidsstempel: LocalDateTime) {
+internal fun lagrePerson(
+    dataSource: DataSource,
+    fødselsnummer: String,
+    tidsstempel: LocalDateTime,
+) {
     @Language("PostgreSQL")
     val statement = """
         INSERT INTO person (fnr, siste_aktivitet) VALUES (:fnr, :siste_aktivitet)
@@ -17,10 +21,15 @@ internal fun lagrePerson(dataSource: DataSource, fødselsnummer: String, tidsste
             WHERE person.siste_aktivitet < excluded.siste_aktivitet
     """
     sessionOf(dataSource).use {
-        it.run(queryOf(statement, mapOf(
-            "fnr" to fødselsnummer.toLong(),
-            "siste_aktivitet" to tidsstempel
-        )).asExecute)
+        it.run(
+            queryOf(
+                statement,
+                mapOf(
+                    "fnr" to fødselsnummer.toLong(),
+                    "siste_aktivitet" to tidsstempel,
+                ),
+            ).asExecute,
+        )
     }
 }
 
@@ -32,14 +41,16 @@ internal fun lagreTilstandsendring(
     tilstand: String,
     endringstidspunkt: LocalDateTime,
     nestePåminnelsetidspunkt: LocalDateTime,
-    originalJson: String
+    originalJson: String,
 ) {
     lagrePerson(dataSource, fødselsnummer, endringstidspunkt)
-    if (Tilstandsendringer.TilstandsendringEventDto.erSluttilstand(tilstand)) slettPåminnelse(dataSource, vedtaksperiodeId)
-    else sessionOf(dataSource).use {
-        it.run(
-            queryOf(
-                "INSERT INTO paminnelse (fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
+    if (Tilstandsendringer.TilstandsendringEventDto.erSluttilstand(tilstand)) {
+        slettPåminnelse(dataSource, vedtaksperiodeId)
+    } else {
+        sessionOf(dataSource).use {
+            it.run(
+                queryOf(
+                    "INSERT INTO paminnelse (fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, endringstidspunkt_nanos, neste_paminnelsetidspunkt, data) " +
                         "VALUES (:fodselsnummer, :organisasjonsnummer, :vedtaksperiodeId, :tilstand, :endringstidspunkt, :endringstidspunktNano, :nestePaminnelsetidspunkt, (to_json(:originalJson::json))) " +
                         "ON CONFLICT(vedtaksperiode_id) do " +
                         "UPDATE SET tilstand=EXCLUDED.tilstand, " +
@@ -51,31 +62,38 @@ internal fun lagreTilstandsendring(
                         "   opprettet=now() " +
                         "WHERE (paminnelse.tilstand != EXCLUDED.tilstand AND paminnelse.endringstidspunkt < EXCLUDED.endringstidspunkt) " +
                         "   OR (paminnelse.endringstidspunkt = EXCLUDED.endringstidspunkt AND paminnelse.endringstidspunkt_nanos < EXCLUDED.endringstidspunkt_nanos)",
-                mapOf(
-                    "fodselsnummer" to fødselsnummer,
-                    "organisasjonsnummer" to organisasjonsnummer,
-                    "vedtaksperiodeId" to vedtaksperiodeId,
-                    "tilstand" to tilstand,
-                    "endringstidspunkt" to endringstidspunkt,
-                    "endringstidspunktNano" to endringstidspunkt.nano,
-                    "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt,
-                    "originalJson" to originalJson
-                )
-            ).asExecute
-        )
+                    mapOf(
+                        "fodselsnummer" to fødselsnummer,
+                        "organisasjonsnummer" to organisasjonsnummer,
+                        "vedtaksperiodeId" to vedtaksperiodeId,
+                        "tilstand" to tilstand,
+                        "endringstidspunkt" to endringstidspunkt,
+                        "endringstidspunktNano" to endringstidspunkt.nano,
+                        "nestePaminnelsetidspunkt" to nestePåminnelsetidspunkt,
+                        "originalJson" to originalJson,
+                    ),
+                ).asExecute,
+            )
+        }
     }
 }
 
 private fun slettPåminnelse(
     session: Session,
-    vedtaksperiodeId: String
+    vedtaksperiodeId: String,
 ) = session.run(queryOf("DELETE FROM paminnelse WHERE vedtaksperiode_id = ?", vedtaksperiodeId).asExecute)
 
-fun slettPåminnelse(dataSource: DataSource, vedtaksperiodeId: String) = sessionOf(dataSource).use { session ->
+fun slettPåminnelse(
+    dataSource: DataSource,
+    vedtaksperiodeId: String,
+) = sessionOf(dataSource).use { session ->
     slettPåminnelse(session, vedtaksperiodeId)
 }
 
-fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Unit) {
+fun hentPåminnelser(
+    dataSource: DataSource,
+    block: (List<PåminnelseDto>) -> Unit,
+) {
     @Language("PostgreSQL")
     val query = """
         SELECT id, fnr, organisasjonsnummer, vedtaksperiode_id, tilstand, endringstidspunkt, antall_ganger_paminnet, neste_paminnelsetidspunkt, skal_reberegnes 
@@ -86,21 +104,22 @@ fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Un
     """
     return sessionOf(dataSource).use { session ->
         session.transaction { tx ->
-            tx.run(
-                queryOf(query).map {
-                    PåminnelseDto(
-                        id = it.string("id"),
-                        fødselsnummer = it.string("fnr"),
-                        organisasjonsnummer = it.string("organisasjonsnummer"),
-                        vedtaksperiodeId = it.string("vedtaksperiode_id"),
-                        tilstand = it.string("tilstand"),
-                        endringstidspunkt = it.localDateTime("endringstidspunkt"),
-                        antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1,
-                        ønskerReberegning = it.boolean("skal_reberegnes")
-                    )
-                }.asList
-            )
-                .takeUnless { it.isEmpty() }
+            tx
+                .run(
+                    queryOf(query)
+                        .map {
+                            PåminnelseDto(
+                                id = it.string("id"),
+                                fødselsnummer = it.string("fnr"),
+                                organisasjonsnummer = it.string("organisasjonsnummer"),
+                                vedtaksperiodeId = it.string("vedtaksperiode_id"),
+                                tilstand = it.string("tilstand"),
+                                endringstidspunkt = it.localDateTime("endringstidspunkt"),
+                                antallGangerPåminnet = it.int("antall_ganger_paminnet") + 1,
+                                ønskerReberegning = it.boolean("skal_reberegnes"),
+                            )
+                        }.asList,
+                ).takeUnless { it.isEmpty() }
                 ?.also(block)
                 ?.onEach {
                     oppdaterPåminnelse(tx, it)
@@ -109,12 +128,14 @@ fun hentPåminnelser(dataSource: DataSource, block: (List<PåminnelseDto>) -> Un
     }
 }
 
-private fun oppdaterPåminnelse(transactionalSession: TransactionalSession, påminnelse: PåminnelseDto) {
+private fun oppdaterPåminnelse(
+    transactionalSession: TransactionalSession,
+    påminnelse: PåminnelseDto,
+) {
     transactionalSession.run(
         queryOf(
             "UPDATE paminnelse SET skal_reberegnes=false, neste_paminnelsetidspunkt = :nestePaminnelsetidspunkt, antall_ganger_paminnet = antall_ganger_paminnet + 1 WHERE id=:id::BIGINT",
-            mapOf("nestePaminnelsetidspunkt" to påminnelse.nestePåminnelsetidspunkt, "id" to påminnelse.id)
-
-        ).asExecute
+            mapOf("nestePaminnelsetidspunkt" to påminnelse.nestePåminnelsetidspunkt, "id" to påminnelse.id),
+        ).asExecute,
     )
 }

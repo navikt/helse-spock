@@ -13,25 +13,35 @@ import javax.sql.DataSource
 
 internal class Forkastelser(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
 
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
-            validate {
-                it.requireKey("vedtaksperiodeId")
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
+                validate {
+                    it.requireKey("vedtaksperiodeId")
+                }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLogg.error("kunne ikke forstå vedtaksperiode_forkastet: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
         log.info("Sletter påminnelser for {} pga. forkastelse", keyValue("vedtaksperiodeId", vedtaksperiodeId))
         sikkerLogg.info("Sletter påminnelser for {} pga. forkastelse", keyValue("vedtaksperiodeId", vedtaksperiodeId))

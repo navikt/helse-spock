@@ -15,9 +15,8 @@ import javax.sql.DataSource
 
 class PersonPåminnelser(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
-
     private companion object {
         private val log = LoggerFactory.getLogger(PersonPåminnelser::class.java)
         private val secureLogger = LoggerFactory.getLogger("tjenestekall")
@@ -27,11 +26,15 @@ class PersonPåminnelser(
         River(rapidsConnection)
             .precondition {
                 it.requireAny("@event_name", listOf("minutt", "kjør_spock"))
-            }
-            .register(this)
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         lagPåminnelser(context)
     }
 
@@ -43,23 +46,31 @@ class PersonPåminnelser(
         }
     }
 
-    private fun hentPåminnelser(dataSource: DataSource, block: (List<Long>) -> Unit) {
+    private fun hentPåminnelser(
+        dataSource: DataSource,
+        block: (List<Long>) -> Unit,
+    ) {
         sessionOf(dataSource).use { session ->
             session.transaction { tx ->
-                tx.run(
-                    queryOf(
-                        "SELECT fnr FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000 FOR UPDATE SKIP LOCKED;"
-                    ).map {
-                        it.long("fnr")
-                    }.asList
-                )
-                    .takeUnless { it.isEmpty() }
+                tx
+                    .run(
+                        queryOf(
+                            "SELECT fnr FROM person WHERE neste_paminnelsetidspunkt <= now() LIMIT 20000 FOR UPDATE SKIP LOCKED;",
+                        ).map {
+                            it.long("fnr")
+                        }.asList,
+                    ).takeUnless { it.isEmpty() }
                     ?.also(block)
                     ?.also { personer ->
-                        tx.run(queryOf("""
+                        tx.run(
+                            queryOf(
+                                """
                             UPDATE person SET neste_paminnelsetidspunkt = NULL
                             WHERE fnr IN(${personer.joinToString { "?" }})
-                        """, *personer.toTypedArray()).asExecute)
+                        """,
+                                *personer.toTypedArray(),
+                            ).asExecute,
+                        )
                     }
             }
         }
@@ -68,11 +79,17 @@ class PersonPåminnelser(
     private fun Long.send(context: MessageContext) {
         val now = LocalDateTime.now()
         val fnr = toString().padStart(11, '0')
-        context.publish(fnr, JsonMessage.newMessage(mapOf(
-                "@id" to UUID.randomUUID(),
-                "@event_name" to "person_påminnelse",
-                "@opprettet" to "$now",
-                "fødselsnummer" to fnr
-        )).toJson())
+        context.publish(
+            fnr,
+            JsonMessage
+                .newMessage(
+                    mapOf(
+                        "@id" to UUID.randomUUID(),
+                        "@event_name" to "person_påminnelse",
+                        "@opprettet" to "$now",
+                        "fødselsnummer" to fnr,
+                    ),
+                ).toJson(),
+        )
     }
 }

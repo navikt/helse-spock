@@ -11,16 +11,16 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 internal class SlettPersonRiverTest {
-
     private lateinit var dataSource: TestDataSource
     private lateinit var rapid: TestRapid
 
     @BeforeEach
     fun setup() {
         dataSource = databaseContainer.nyTilkobling()
-        rapid = TestRapid().apply {
-            SlettPersonRiver(this, dataSource.ds)
-        }
+        rapid =
+            TestRapid().apply {
+                SlettPersonRiver(this, dataSource.ds)
+            }
     }
 
     @AfterEach
@@ -79,7 +79,10 @@ internal class SlettPersonRiverTest {
         assertEquals(1, rapid.inspektør.size)
     }
 
-    private fun antallRader(tabell: String, fødselsnummer: String): Int {
+    private fun antallRader(
+        tabell: String,
+        fødselsnummer: String,
+    ): Int {
         val fnrParam: Any = if (tabell == "person") fødselsnummer.toLong() else fødselsnummer
         return sessionOf(dataSource.ds).use { session ->
             session.run(
@@ -116,7 +119,10 @@ internal class SlettPersonRiverTest {
                     """,
                     mapOf(
                         "fnr" to fødselsnummer,
-                        "vedtaksperiode_id" to java.util.UUID.randomUUID().toString(),
+                        "vedtaksperiode_id" to
+                            java.util.UUID
+                                .randomUUID()
+                                .toString(),
                         "now" to LocalDateTime.now(),
                     ),
                 ).asUpdate,

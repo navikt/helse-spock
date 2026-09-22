@@ -17,42 +17,52 @@ import javax.sql.DataSource
 
 internal class PersonAvstemminger(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
 
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "person_avstemt") }
-            validate {
-                it.requireKey("fødselsnummer")
-                it.require("@opprettet", JsonNode::asLocalDateTime)
-                it.require("@id", JsonNode::asUUID)
-                it.requireArray("arbeidsgivere") {
-                    requireKey("organisasjonsnummer")
-                    requireArray("vedtaksperioder") {
-                        requireKey("id", "tilstand")
-                        require("oppdatert", JsonNode::asLocalDateTime)
-                    }
-                    requireArray("forkastedeVedtaksperioder") {
-                        requireKey("id", "tilstand")
-                        require("oppdatert", JsonNode::asLocalDateTime)
-                    }
-                    requireArray("utbetalinger") {
-                        requireKey("id", "type", "status")
-                        require("oppdatert", JsonNode::asLocalDateTime)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "person_avstemt") }
+                validate {
+                    it.requireKey("fødselsnummer")
+                    it.require("@opprettet", JsonNode::asLocalDateTime)
+                    it.require("@id", JsonNode::asUUID)
+                    it.requireArray("arbeidsgivere") {
+                        requireKey("organisasjonsnummer")
+                        requireArray("vedtaksperioder") {
+                            requireKey("id", "tilstand")
+                            require("oppdatert", JsonNode::asLocalDateTime)
+                        }
+                        requireArray("forkastedeVedtaksperioder") {
+                            requireKey("id", "tilstand")
+                            require("oppdatert", JsonNode::asLocalDateTime)
+                        }
+                        requireArray("utbetalinger") {
+                            requireKey("id", "type", "status")
+                            require("oppdatert", JsonNode::asLocalDateTime)
+                        }
                     }
                 }
-            }
-        }.register(this)
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLogg.error("kunne ikke forstå person_avstemt: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val fødselsnummer = packet["fødselsnummer"].asText()
         val opprettet = packet["@opprettet"].asLocalDateTime()
         sikkerLogg.info("Avstemmer spock mot resultat fra spleis sendt $opprettet", kv("fødselsnummer", fødselsnummer))
@@ -70,7 +80,7 @@ internal class PersonAvstemminger(
                     tilstand,
                     endringstidspunkt,
                     nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0),
-                    vedtaksperiode.toString()
+                    vedtaksperiode.toString(),
                 )
             }
             arbeidsgiver.path("forkastedeVedtaksperioder").forEach { vedtaksperiode ->
@@ -80,7 +90,6 @@ internal class PersonAvstemminger(
 
         sikkerLogg.info("Avstemming utført", kv("fødselsnummer", fødselsnummer))
     }
-
 }
 
 private fun JsonNode.asUUID() = UUID.fromString(asText())

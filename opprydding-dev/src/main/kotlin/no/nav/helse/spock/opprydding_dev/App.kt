@@ -15,6 +15,5 @@ fun main() {
         .create(env)
         .apply {
             SlettPersonRiver(this, dataSource)
-        }
-        .start()
+        }.start()
 }

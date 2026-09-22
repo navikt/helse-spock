@@ -18,18 +18,22 @@ fun launchApp(env: Map<String, String>) {
     val dataSourceBuilder = DataSourceBuilder(env)
     val dataSource = dataSourceBuilder.getDataSource()
 
-    RapidApplication.create(env).apply {
-        Forkastelser(this, dataSource)
-        Tilstandsendringer(this, dataSource)
-        IkkePåminnelser(this, dataSource)
-        Påminnelser(this, dataSource)
-        PersonAvstemminger(this, dataSource)
-        PersonPåminnelser(this, dataSource)
-    }.apply {
-        register(object : RapidsConnection.StatusListener {
-            override fun onStartup(rapidsConnection: RapidsConnection) {
-                dataSourceBuilder.migrate()
-            }
-        })
-    }.start()
+    RapidApplication
+        .create(env)
+        .apply {
+            Forkastelser(this, dataSource)
+            Tilstandsendringer(this, dataSource)
+            IkkePåminnelser(this, dataSource)
+            Påminnelser(this, dataSource)
+            PersonAvstemminger(this, dataSource)
+            PersonPåminnelser(this, dataSource)
+        }.apply {
+            register(
+                object : RapidsConnection.StatusListener {
+                    override fun onStartup(rapidsConnection: RapidsConnection) {
+                        dataSourceBuilder.migrate()
+                    }
+                },
+            )
+        }.start()
 }

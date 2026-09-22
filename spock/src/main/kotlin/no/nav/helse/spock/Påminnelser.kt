@@ -11,9 +11,8 @@ import javax.sql.DataSource
 
 class Påminnelser(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
-
     private companion object {
         private val log = LoggerFactory.getLogger(Påminnelser::class.java)
         private val secureLogger = LoggerFactory.getLogger("tjenestekall")
@@ -23,11 +22,15 @@ class Påminnelser(
         River(rapidsConnection)
             .precondition {
                 it.requireAny("@event_name", listOf("minutt", "kjør_spock"))
-            }
-            .register(this)
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         lagPåminnelser(context)
     }
 
@@ -35,13 +38,14 @@ class Påminnelser(
         hentPåminnelser(dataSource) { påminnelser ->
             log.info("hentet ${påminnelser.size} påminnelser fra db")
             secureLogger.info("hentet ${påminnelser.size} påminnelser fra db")
-            påminnelser.map {
-                it.fødselsnummer to it.toJson()
-            }.onEach { (_, påminnelse) ->
-                secureLogger.info("Produserer $påminnelse")
-            }.forEach { (key, value) ->
-                context.publish(key, value)
-            }
+            påminnelser
+                .map {
+                    it.fødselsnummer to it.toJson()
+                }.onEach { (_, påminnelse) ->
+                    secureLogger.info("Produserer $påminnelse")
+                }.forEach { (key, value) ->
+                    context.publish(key, value)
+                }
         }
     }
 }

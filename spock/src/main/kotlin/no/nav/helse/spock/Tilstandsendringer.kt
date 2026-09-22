@@ -9,6 +9,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
+import org.slf4j.LoggerFactory
 import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.SATURDAY
 import java.time.DayOfWeek.SUNDAY
@@ -17,37 +18,47 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.sql.DataSource
 import kotlin.math.abs
-import org.slf4j.LoggerFactory
 
 class Tilstandsendringer(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
-
     private companion object {
         private val log = LoggerFactory.getLogger(Tilstandsendringer::class.java)
         private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
     }
 
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
-            validate {
-                it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand")
-            }
-            validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
+                validate {
+                    it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "gjeldendeTilstand")
+                }
+                validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLog.error("kunne ikke forstå vedtaksperiode_endret: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         TilstandsendringEventDto(packet).lagreTilstandsendring(dataSource)
     }
 
-    class TilstandsendringEventDto(packet: JsonMessage) {
+    class TilstandsendringEventDto(
+        packet: JsonMessage,
+    ) {
         val fødselsnummer = packet["fødselsnummer"].asText()
         val organisasjonsnummer = packet["organisasjonsnummer"].asText()
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
@@ -64,7 +75,7 @@ class Tilstandsendringer(
                 tilstand,
                 endringstidspunkt,
                 nestePåminnelsetidspunkt(),
-                originalJson
+                originalJson,
             )
         }
 
@@ -76,69 +87,73 @@ class Tilstandsendringer(
             fun nestePåminnelsetidspunkt(
                 tilstand: String,
                 endringstidspunkt: LocalDateTime,
-                antallGangerPåminnet: Int
-            ) =
-                when (tilstand) {
-                    "AVVENTER_REVURDERING",
-                    "AVVENTER_BLOKKERENDE_PERIODE",
-                    "AVVENTER_SØKNAD_FOR_OVERLAPPENDE_PERIODE",
-                    "AVVENTER_INNTEKTSOPPLYSNINGER_FOR_ANNEN_ARBEIDSGIVER",
-                    "AVVENTER_REFUSJONSOPPLYSNINGER_ANNEN_PERIODE",
-                    "AVVENTER_AVSLUTTET_UTEN_UTBETALING",
-                    "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
-                    "SELVSTENDIG_AVVENTER_REVURDERING",
-                    "FRILANS_AVVENTER_BLOKKERENDE_PERIODE",
-                    "ARBEIDSLEDIIG_AVVENTER_BLOKKERENDE_PERIODE",
-                    "AVVENTER_ANNULLERING"-> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
+                antallGangerPåminnet: Int,
+            ) = when (tilstand) {
+                "AVVENTER_REVURDERING",
+                "AVVENTER_BLOKKERENDE_PERIODE",
+                "AVVENTER_SØKNAD_FOR_OVERLAPPENDE_PERIODE",
+                "AVVENTER_INNTEKTSOPPLYSNINGER_FOR_ANNEN_ARBEIDSGIVER",
+                "AVVENTER_REFUSJONSOPPLYSNINGER_ANNEN_PERIODE",
+                "AVVENTER_AVSLUTTET_UTEN_UTBETALING",
+                "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
+                "SELVSTENDIG_AVVENTER_REVURDERING",
+                "FRILANS_AVVENTER_BLOKKERENDE_PERIODE",
+                "ARBEIDSLEDIIG_AVVENTER_BLOKKERENDE_PERIODE",
+                "AVVENTER_ANNULLERING",
+                -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
-                    "AVVENTER_GODKJENNING_REVURDERING",
-                    "AVVENTER_GODKJENNING",
-                    "AVVENTER_INNTEKTSMELDING",
-                    "SELVSTENDIG_AVVENTER_GODKJENNING_REVURDERING",
-                    "SELVSTENDIG_AVVENTER_GODKJENNING" -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
+                "AVVENTER_GODKJENNING_REVURDERING",
+                "AVVENTER_GODKJENNING",
+                "AVVENTER_INNTEKTSMELDING",
+                "SELVSTENDIG_AVVENTER_GODKJENNING_REVURDERING",
+                "SELVSTENDIG_AVVENTER_GODKJENNING",
+                -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
 
-                    "AVVENTER_INFOTRYGDHISTORIKK",
-                    "AVVENTER_A_ORDNINGEN",
-                    "AVVENTER_VILKÅRSPRØVING",
-                    "AVVENTER_VILKÅRSPRØVING_REVURDERING",
-                    "AVVENTER_HISTORIKK_REVURDERING",
-                    "AVVENTER_HISTORIKK",
-                    "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING",
-                    "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING_REVURDERING",
-                    "SELVSTENDIG_AVVENTER_HISTORIKK",
-                    "SELVSTENDIG_AVVENTER_HISTORIKK_REVURDERING",
-                    "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK",
-                    "FRILANS_AVVENTER_INFOTRYGDHISTORIKK",
-                    "ARBEIDSLEDIG_AVVENTER_INFOTRYGDHISTORIKK" -> endringstidspunkt.plusHours(1)
+                "AVVENTER_INFOTRYGDHISTORIKK",
+                "AVVENTER_A_ORDNINGEN",
+                "AVVENTER_VILKÅRSPRØVING",
+                "AVVENTER_VILKÅRSPRØVING_REVURDERING",
+                "AVVENTER_HISTORIKK_REVURDERING",
+                "AVVENTER_HISTORIKK",
+                "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING",
+                "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING_REVURDERING",
+                "SELVSTENDIG_AVVENTER_HISTORIKK",
+                "SELVSTENDIG_AVVENTER_HISTORIKK_REVURDERING",
+                "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK",
+                "FRILANS_AVVENTER_INFOTRYGDHISTORIKK",
+                "ARBEIDSLEDIG_AVVENTER_INFOTRYGDHISTORIKK",
+                -> endringstidspunkt.plusHours(1)
 
-                    "AVVENTER_REVURDERING_TIL_UTBETALING",
-                    "AVVENTER_ANNULLERING_TIL_UTBETALING",
-                    "TIL_UTBETALING",
-                    "SELVSTENDIG_TIL_UTBETALING",
-                    "AVVENTER_SIMULERING_REVURDERING",
-                    "TIL_ANNULLERING",
-                    "AVVENTER_SIMULERING",
-                    "SELVSTENDIG_AVVENTER_SIMULERING_REVURDERING",
-                    "SELVSTENDIG_AVVENTER_REVURDERING_TIL_UTBETALING",
-                    "SELVSTENDIG_AVVENTER_SIMULERING" -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
+                "AVVENTER_REVURDERING_TIL_UTBETALING",
+                "AVVENTER_ANNULLERING_TIL_UTBETALING",
+                "TIL_UTBETALING",
+                "SELVSTENDIG_TIL_UTBETALING",
+                "AVVENTER_SIMULERING_REVURDERING",
+                "TIL_ANNULLERING",
+                "AVVENTER_SIMULERING",
+                "SELVSTENDIG_AVVENTER_SIMULERING_REVURDERING",
+                "SELVSTENDIG_AVVENTER_REVURDERING_TIL_UTBETALING",
+                "SELVSTENDIG_AVVENTER_SIMULERING",
+                -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
 
-                    "START",
-                    "SELVSTENDIG_START",
-                    "FRILANS_START",
-                    "ARBEIDSLEDIG_START",
-                    "AVVENTER_GJENNOMFØRT_REVURDERING", //Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
-                    "REVURDERING_FEILET",
-                    "UTBETALING_FEILET",
-                    "AVSLUTTET_UTEN_UTBETALING",
-                    "TIL_INFOTRYGD",
-                    "AVSLUTTET",
-                    "SELVSTENDIG_AVSLUTTET" -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
+                "START",
+                "SELVSTENDIG_START",
+                "FRILANS_START",
+                "ARBEIDSLEDIG_START",
+                "AVVENTER_GJENNOMFØRT_REVURDERING", // Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
+                "REVURDERING_FEILET",
+                "UTBETALING_FEILET",
+                "AVSLUTTET_UTEN_UTBETALING",
+                "TIL_INFOTRYGD",
+                "AVSLUTTET",
+                "SELVSTENDIG_AVSLUTTET",
+                -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
 
-                    else -> {
-                        sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
-                        defaultIntervall(endringstidspunkt)
-                    }
+                else -> {
+                    sikkerLog.warn("Har ikke påminnelseregler for tilstand $tilstand")
+                    defaultIntervall(endringstidspunkt)
                 }
+            }
 
             // velger et tilfeldig klokkeslett mellom 18:00 og 05:59 _neste_ dag.
             // det betyr at om endringstidspunktet er 1. januar 23:59, og vi velger kl 01:00,
@@ -167,30 +182,35 @@ class Tilstandsendringer(
             // samme dag om vi er før åpningstid (og ukedag), neste mandag hvis ikke
             private fun nesteÅpningsdagtidspunkt(endringstidspunkt: LocalDateTime): LocalDateTime {
                 val nesteÅpningsdag =
-                    if (endringstidspunkt.erHelg() || etterStengetid(endringstidspunkt)) endringstidspunkt.nesteUkedag()
-                    else endringstidspunkt.toLocalDate()
+                    if (endringstidspunkt.erHelg() || etterStengetid(endringstidspunkt)) {
+                        endringstidspunkt.nesteUkedag()
+                    } else {
+                        endringstidspunkt.toLocalDate()
+                    }
                 // spre påminnelsene litt utover morgentimene
                 return nesteÅpningsdag.atTime(åpningstiderOppdragUR.start).tilfeldigKlokkeslett(0, 1)
             }
 
-            private fun LocalDateTime.nesteUkedag() = this.plusDays(
-                when (this.dayOfWeek) {
-                    FRIDAY -> 3
-                    SATURDAY -> 2
-                    else -> 1
-                }
-            ).toLocalDate()
+            private fun LocalDateTime.nesteUkedag() =
+                this
+                    .plusDays(
+                        when (this.dayOfWeek) {
+                            FRIDAY -> 3
+                            SATURDAY -> 2
+                            else -> 1
+                        },
+                    ).toLocalDate()
 
-            private fun etterStengetid(endringstidspunkt: LocalDateTime) =
-                endringstidspunkt.toLocalTime() > åpningstiderOppdragUR.endInclusive
+            private fun etterStengetid(endringstidspunkt: LocalDateTime) = endringstidspunkt.toLocalTime() > åpningstiderOppdragUR.endInclusive
 
-            private fun innenforÅpningstid(endringstidspunkt: LocalDateTime) =
-                !endringstidspunkt.erHelg() && endringstidspunkt.toLocalTime() in åpningstiderOppdragUR
+            private fun innenforÅpningstid(endringstidspunkt: LocalDateTime) = !endringstidspunkt.erHelg() && endringstidspunkt.toLocalTime() in åpningstiderOppdragUR
         }
     }
 }
 
-private fun LocalDateTime.tilfeldigKlokkeslett(minTimer: Int, maxTimer: Int) =
-    this.plusHours((minTimer..maxTimer).random().toLong()).withMinute((0..59).random())
+private fun LocalDateTime.tilfeldigKlokkeslett(
+    minTimer: Int,
+    maxTimer: Int,
+) = this.plusHours((minTimer..maxTimer).random().toLong()).withMinute((0..59).random())
 
 private fun LocalDateTime.erHelg() = this.dayOfWeek == SATURDAY || this.dayOfWeek == SUNDAY

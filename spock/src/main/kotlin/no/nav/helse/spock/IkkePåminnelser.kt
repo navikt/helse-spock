@@ -15,26 +15,36 @@ import javax.sql.DataSource
 
 internal class IkkePåminnelser(
     rapidsConnection: RapidsConnection,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : River.PacketListener {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
 
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperiode_ikke_påminnet") }
-            validate {
-                it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "tilstand")
-                it.require("@opprettet", JsonNode::asLocalDateTime)
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "vedtaksperiode_ikke_påminnet") }
+                validate {
+                    it.requireKey("fødselsnummer", "organisasjonsnummer", "vedtaksperiodeId", "tilstand")
+                    it.require("@opprettet", JsonNode::asLocalDateTime)
+                }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLogg.error("kunne ikke forstå vedtaksperiode_ikke_påminnet: ${problems.toExtendedReport()}")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val fødselsnummer = packet["fødselsnummer"].asText()
         val organisasjonsnummer = packet["organisasjonsnummer"].asText()
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
@@ -48,15 +58,15 @@ internal class IkkePåminnelser(
             tilstand,
             opprettet,
             Tilstandsendringer.TilstandsendringEventDto.nestePåminnelsetidspunkt(tilstand, opprettet, 0),
-            packet.toJson()
+            packet.toJson(),
         )
         log.info(
             "Setter tilstand=$tilstand for {}",
-            keyValue("vedtaksperiodeId", vedtaksperiodeId)
+            keyValue("vedtaksperiodeId", vedtaksperiodeId),
         )
         sikkerLogg.info(
             "Setter tilstand=$tilstand for {}",
-            keyValue("vedtaksperiodeId", vedtaksperiodeId)
+            keyValue("vedtaksperiodeId", vedtaksperiodeId),
         )
     }
 }
