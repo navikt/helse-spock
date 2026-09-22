@@ -9,6 +9,9 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.sykepenger.libs.logging.MdcKey
+import no.nav.sykepenger.libs.logging.loggInfo
+import no.nav.sykepenger.libs.logging.medMdc
 import javax.sql.DataSource
 
 internal class SlettPersonRiver(
@@ -32,12 +35,15 @@ internal class SlettPersonRiver(
         meterRegistry: MeterRegistry,
     ) {
         val fødselsnummer = packet["fødselsnummer"].asString()
+        medMdc(MdcKey.IDENTITETSNUMMER to fødselsnummer) {
+            loggInfo("Mottok og tolket slett_person-melding", "melding" to packet.toJson())
+            sessionOf(dataSource).use { session ->
+                session.transaction { tx -> slettPerson(tx, fødselsnummer) }
+            }
 
-        sessionOf(dataSource).use { session ->
-            session.transaction { tx -> slettPerson(tx, fødselsnummer) }
+            context.publish(fødselsnummer, lagPersonSlettet(fødselsnummer))
+            loggInfo("Ferdig med slett_person-melding")
         }
-
-        context.publish(fødselsnummer, lagPersonSlettet(fødselsnummer))
     }
 
     private fun slettPerson(
@@ -45,19 +51,21 @@ internal class SlettPersonRiver(
         fødselsnummer: String,
     ) {
         listOf("paminnelse", "utbetaling").forEach { table ->
-            tx.run(
-                queryOf(
-                    "DELETE FROM $table WHERE fnr = :fnr",
-                    mapOf("fnr" to fødselsnummer),
-                ).asUpdate,
-            )
+            tx
+                .run(
+                    queryOf(
+                        "DELETE FROM $table WHERE fnr = :fnr",
+                        mapOf("fnr" to fødselsnummer),
+                    ).asUpdate,
+                ).also { loggInfo("Slettet $it rader i tabellen $table") }
         }
-        tx.run(
-            queryOf(
-                "DELETE FROM person WHERE fnr = :fnr",
-                mapOf("fnr" to fødselsnummer.toLong()),
-            ).asUpdate,
-        )
+        tx
+            .run(
+                queryOf(
+                    "DELETE FROM person WHERE fnr = :fnr",
+                    mapOf("fnr" to fødselsnummer.toLong()),
+                ).asUpdate,
+            ).also { loggInfo("Slettet $it rader i tabellen person") }
     }
 
     private fun lagPersonSlettet(fødselsnummer: String): String =
