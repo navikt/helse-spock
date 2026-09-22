@@ -12,6 +12,7 @@ dependencies {
     implementation(libs.hikaricp)
     implementation(libs.postgresql)
     implementation(libs.kotliquery)
+    implementation(libs.sykepengerLibs.logging)
 
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)
     testImplementation(libs.tbd.libs.postgres.testdatabaser)

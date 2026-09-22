@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.kotliquery)
     implementation(libs.cloud.sql.postgres.socket.factory)
+    implementation(libs.sykepengerLibs.logging)
 
     testImplementation(project(":spock"))
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)
