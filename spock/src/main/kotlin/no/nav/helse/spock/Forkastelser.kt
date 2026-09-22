@@ -42,7 +42,7 @@ internal class Forkastelser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
+        val vedtaksperiodeId = packet["vedtaksperiodeId"].asString()
         log.info("Sletter påminnelser for {} pga. forkastelse", keyValue("vedtaksperiodeId", vedtaksperiodeId))
         sikkerLogg.info("Sletter påminnelser for {} pga. forkastelse", keyValue("vedtaksperiodeId", vedtaksperiodeId))
         slettPåminnelse(dataSource, vedtaksperiodeId)

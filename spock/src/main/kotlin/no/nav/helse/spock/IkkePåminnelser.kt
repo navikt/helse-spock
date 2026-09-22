@@ -1,6 +1,5 @@
 package no.nav.helse.spock
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
@@ -11,6 +10,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.JsonNode
 import javax.sql.DataSource
 
 internal class IkkePåminnelser(
@@ -45,10 +45,10 @@ internal class IkkePåminnelser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val fødselsnummer = packet["fødselsnummer"].asText()
-        val organisasjonsnummer = packet["organisasjonsnummer"].asText()
-        val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
-        val tilstand = packet["tilstand"].asText()
+        val fødselsnummer = packet["fødselsnummer"].asString()
+        val organisasjonsnummer = packet["organisasjonsnummer"].asString()
+        val vedtaksperiodeId = packet["vedtaksperiodeId"].asString()
+        val tilstand = packet["tilstand"].asString()
         val opprettet = packet["@opprettet"].asLocalDateTime()
         lagreTilstandsendring(
             dataSource,

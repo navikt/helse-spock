@@ -68,8 +68,8 @@ internal class SlettPersonRiverTest {
 
         assertEquals(1, rapid.inspektør.size)
         val melding = rapid.inspektør.message(0)
-        assertEquals("person_slettet", melding.path("@event_name").asText())
-        assertEquals(fødselsnummer, melding.path("fødselsnummer").asText())
+        assertEquals("person_slettet", melding.path("@event_name").asString())
+        assertEquals(fødselsnummer, melding.path("fødselsnummer").asString())
     }
 
     @Test

@@ -1,6 +1,5 @@
 package no.nav.helse.spock
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
@@ -12,6 +11,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spock.Tilstandsendringer.TilstandsendringEventDto.Companion.nestePåminnelsetidspunkt
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.JsonNode
 import java.util.*
 import javax.sql.DataSource
 
@@ -63,20 +63,20 @@ internal class PersonAvstemminger(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val fødselsnummer = packet["fødselsnummer"].asText()
+        val fødselsnummer = packet["fødselsnummer"].asString()
         val opprettet = packet["@opprettet"].asLocalDateTime()
         sikkerLogg.info("Avstemmer spock mot resultat fra spleis sendt $opprettet", kv("fødselsnummer", fødselsnummer))
 
         packet["arbeidsgivere"].forEach { arbeidsgiver ->
-            val organisasjonsnummer = arbeidsgiver.path("organisasjonsnummer").asText()
+            val organisasjonsnummer = arbeidsgiver.path("organisasjonsnummer").asString()
             arbeidsgiver.path("vedtaksperioder").forEach { vedtaksperiode ->
-                val tilstand = vedtaksperiode.path("tilstand").asText()
+                val tilstand = vedtaksperiode.path("tilstand").asString()
                 val endringstidspunkt = vedtaksperiode.path("oppdatert").asLocalDateTime()
                 lagreTilstandsendring(
                     dataSource,
                     fødselsnummer,
                     organisasjonsnummer,
-                    vedtaksperiode.path("id").asText(),
+                    vedtaksperiode.path("id").asString(),
                     tilstand,
                     endringstidspunkt,
                     nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0),
@@ -84,7 +84,7 @@ internal class PersonAvstemminger(
                 )
             }
             arbeidsgiver.path("forkastedeVedtaksperioder").forEach { vedtaksperiode ->
-                slettPåminnelse(dataSource, vedtaksperiode.path("id").asText())
+                slettPåminnelse(dataSource, vedtaksperiode.path("id").asString())
             }
         }
 
@@ -92,4 +92,4 @@ internal class PersonAvstemminger(
     }
 }
 
-private fun JsonNode.asUUID() = UUID.fromString(asText())
+private fun JsonNode.asUUID() = UUID.fromString(asString())

@@ -51,9 +51,9 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(kjørSpock())
         val påminnelse = rapid.inspektør.message(rapid.inspektør.size - 1)
-        assertEquals("påminnelse", påminnelse.path("@event_name").asText())
-        assertEquals(vedtaksperiodeId.toString(), påminnelse.path("vedtaksperiodeId").asText())
-        assertEquals(tilstand, påminnelse.path("tilstand").asText())
+        assertEquals("påminnelse", påminnelse.path("@event_name").asString())
+        assertEquals(vedtaksperiodeId.toString(), påminnelse.path("vedtaksperiodeId").asString())
+        assertEquals(tilstand, påminnelse.path("tilstand").asString())
     }
 
     @Test

@@ -1,6 +1,5 @@
 package no.nav.helse.spock
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
@@ -10,6 +9,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.JsonNode
 import java.time.DayOfWeek.FRIDAY
 import java.time.DayOfWeek.SATURDAY
 import java.time.DayOfWeek.SUNDAY
@@ -59,10 +59,10 @@ class Tilstandsendringer(
     class TilstandsendringEventDto(
         packet: JsonMessage,
     ) {
-        val fødselsnummer = packet["fødselsnummer"].asText()
-        val organisasjonsnummer = packet["organisasjonsnummer"].asText()
-        val vedtaksperiodeId = packet["vedtaksperiodeId"].asText()
-        val tilstand = packet["gjeldendeTilstand"].asText()
+        val fødselsnummer = packet["fødselsnummer"].asString()
+        val organisasjonsnummer = packet["organisasjonsnummer"].asString()
+        val vedtaksperiodeId = packet["vedtaksperiodeId"].asString()
+        val tilstand = packet["gjeldendeTilstand"].asString()
         val endringstidspunkt = packet["@opprettet"].asLocalDateTime()
         val originalJson = packet.toJson()
 

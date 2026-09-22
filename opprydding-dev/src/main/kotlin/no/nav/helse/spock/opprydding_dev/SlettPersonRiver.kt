@@ -31,7 +31,7 @@ internal class SlettPersonRiver(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val fødselsnummer = packet["fødselsnummer"].asText()
+        val fødselsnummer = packet["fødselsnummer"].asString()
 
         sessionOf(dataSource).use { session ->
             session.transaction { tx -> slettPerson(tx, fødselsnummer) }
