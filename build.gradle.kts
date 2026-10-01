@@ -1,4 +1,4 @@
 plugins {
-    alias(libs.plugins.sas.root)
-    alias(libs.plugins.sas.deployable) apply false
+    alias(libs.plugins.sykepenger.root)
+    alias(libs.plugins.sykepenger.deployable) apply false
 }

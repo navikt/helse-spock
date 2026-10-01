@@ -1,5 +1,5 @@
 [versions]
-sasGradlePlugins = "20260918.1635"
+sykepengerGradlePlugins = "20261001.1830"
 tbd-libs = "20260917.2152"
 
 [libraries]
@@ -14,5 +14,5 @@ tbd-libs-postgres-testdatabaser = { module = "com.github.navikt.tbd-libs:postgre
 tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 
 [plugins]
-sas-deployable = { id = "no.nav.helse.sas.sas-deployable", version.ref = "sasGradlePlugins" }
-sas-root = { id = "no.nav.helse.sas.sas-root", version.ref = "sasGradlePlugins" }
+sykepenger-deployable = { id = "no.nav.sykepenger.deployable", version.ref = "sykepengerGradlePlugins" }
+sykepenger-root = { id = "no.nav.sykepenger.root", version.ref = "sykepengerGradlePlugins" }
