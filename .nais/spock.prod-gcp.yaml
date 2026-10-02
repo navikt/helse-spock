@@ -1,20 +1,4 @@
-apiVersion: nais.io/v1alpha1
-kind: Application
-metadata:
-  name: spock
-  namespace: tbd
-  labels:
-    team: tbd
 spec:
-  port: 8080
-  strategy:
-    type: Recreate
-  liveness:
-    path: isalive
-    initialDelay: 5
-  readiness:
-    path: isready
-    initialDelay: 5
   preStopHook:
     http:
       path: /stop
@@ -23,19 +7,10 @@ spec:
       memory: 4Gi
     requests:
       cpu: 50m
-      memory: 64Mi
   replicas:
     min: 2
     max: 5
     cpuThresholdPercentage: 50
-  prometheus:
-    enabled: true
-    path: /metrics
-  accessPolicy:
-    outbound:
-      rules:
-        - application: logging
-          namespace: nais-system
   gcp:
     sqlInstances:
       - type: POSTGRES_17
@@ -58,14 +33,5 @@ spec:
   kafka:
     pool: nav-prod
   env:
-    - name: KAFKA_CONSUMER_GROUP_ID
-      value: tbd-spock-v1
-    - name: KAFKA_RAPID_TOPIC
-      value: tbd.rapid.v1
     - name: KAFKA_RESET_POLICY
       value: none
-  observability:
-    logging:
-      destinations:
-        - id: elastic
-        - id: loki

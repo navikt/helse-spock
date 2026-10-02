@@ -1,0 +1,23 @@
+spec:
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 5m
+  replicas:
+    min: 1
+    max: 1
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_17
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        tier: db-f1-micro
+        name: spock
+        databases:
+          - name: spock
+            envVarPrefix: DATABASE
+            users:
+              - name: spock_opprydding_dev
+  kafka:
+    pool: nav-dev
