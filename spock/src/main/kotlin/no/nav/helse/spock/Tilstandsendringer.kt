@@ -82,7 +82,7 @@ class Tilstandsendringer(
         fun nestePåminnelsetidspunkt() = nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0)
 
         companion object {
-            fun erSluttilstand(tilstand: String) = tilstand in listOf("AVSLUTTET", "TIL_INFOTRYGD", "SELVSTENDIG_AVSLUTTET", "SELVSTENDIG_TIL_INFOTRYGD")
+            fun erSluttilstand(tilstand: String) = tilstand in listOf("AVSLUTTET", "TIL_INFOTRYGD")
 
             fun nestePåminnelsetidspunkt(
                 tilstand: String,
@@ -95,18 +95,12 @@ class Tilstandsendringer(
                 "AVVENTER_INNTEKTSOPPLYSNINGER_FOR_ANNEN_ARBEIDSGIVER",
                 "AVVENTER_REFUSJONSOPPLYSNINGER_ANNEN_PERIODE",
                 "AVVENTER_AVSLUTTET_UTEN_UTBETALING",
-                "SELVSTENDIG_AVVENTER_BLOKKERENDE_PERIODE",
-                "SELVSTENDIG_AVVENTER_REVURDERING",
-                "FRILANS_AVVENTER_BLOKKERENDE_PERIODE",
-                "ARBEIDSLEDIIG_AVVENTER_BLOKKERENDE_PERIODE",
                 "AVVENTER_ANNULLERING",
                 -> endringstidspunkt.tilfeldigKlokkeslett(48, 71) // påminner om 2-3 døgn
 
                 "AVVENTER_GODKJENNING_REVURDERING",
                 "AVVENTER_GODKJENNING",
                 "AVVENTER_INNTEKTSMELDING",
-                "SELVSTENDIG_AVVENTER_GODKJENNING_REVURDERING",
-                "SELVSTENDIG_AVVENTER_GODKJENNING",
                 -> endringstidspunkt.tilfeldigKlokkeslett(120, 167) // påminner om 5-7 døgn
 
                 "AVVENTER_INFOTRYGDHISTORIKK",
@@ -115,38 +109,23 @@ class Tilstandsendringer(
                 "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                 "AVVENTER_HISTORIKK_REVURDERING",
                 "AVVENTER_HISTORIKK",
-                "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING",
-                "SELVSTENDIG_AVVENTER_VILKÅRSPRØVING_REVURDERING",
-                "SELVSTENDIG_AVVENTER_HISTORIKK",
-                "SELVSTENDIG_AVVENTER_HISTORIKK_REVURDERING",
-                "SELVSTENDIG_AVVENTER_INFOTRYGDHISTORIKK",
-                "FRILANS_AVVENTER_INFOTRYGDHISTORIKK",
-                "ARBEIDSLEDIG_AVVENTER_INFOTRYGDHISTORIKK",
                 -> endringstidspunkt.plusHours(1)
 
                 "AVVENTER_REVURDERING_TIL_UTBETALING",
                 "AVVENTER_ANNULLERING_TIL_UTBETALING",
                 "TIL_UTBETALING",
-                "SELVSTENDIG_TIL_UTBETALING",
                 "AVVENTER_SIMULERING_REVURDERING",
                 "TIL_ANNULLERING",
                 "AVVENTER_SIMULERING",
-                "SELVSTENDIG_AVVENTER_SIMULERING_REVURDERING",
-                "SELVSTENDIG_AVVENTER_REVURDERING_TIL_UTBETALING",
-                "SELVSTENDIG_AVVENTER_SIMULERING",
                 -> OppdragUR.beregnPåminnelsetidspunkt(endringstidspunkt)
 
                 "START",
-                "SELVSTENDIG_START",
-                "FRILANS_START",
-                "ARBEIDSLEDIG_START",
                 "AVVENTER_GJENNOMFØRT_REVURDERING", // Bør ikke påminnes, fordi den er avhengig av en periode som står i AVVENTER_GODKJENNING_REVURDERING
                 "REVURDERING_FEILET",
                 "UTBETALING_FEILET",
                 "AVSLUTTET_UTEN_UTBETALING",
                 "TIL_INFOTRYGD",
                 "AVSLUTTET",
-                "SELVSTENDIG_AVSLUTTET",
                 -> LocalDate.ofYearDay(9999, 1).atStartOfDay()
 
                 else -> {
