@@ -1,6 +1,6 @@
 [versions]
-sykepengerGradlePlugins = "20261028.1441"
-tbd-libs = "20261013.1613"
+sykepengerGradlePlugins = "20261029.1945"
+tbd-libs = "20261029.1843"
 
 [libraries]
 cloud-sql-postgres-socket-factory = "com.google.cloud.sql:postgres-socket-factory:1.30.1"
@@ -9,7 +9,7 @@ hikaricp = "com.zaxxer:HikariCP:7.1.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.1"
 postgresql = "org.postgresql:postgresql:42.7.14"
 rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026091610031789545782"
-sykepengerLibs-logging = "no.nav.sykepenger.libs:logging:20261013.1719"
+sykepengerLibs-logging = "no.nav.sykepenger.libs:logging:20261029.1851"
 tbd-libs-postgres-testdatabaser = { module = "com.github.navikt.tbd-libs:postgres-testdatabaser", version.ref = "tbd-libs" }
 tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 
