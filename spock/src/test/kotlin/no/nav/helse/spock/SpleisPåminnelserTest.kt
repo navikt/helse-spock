@@ -2,11 +2,9 @@ package no.nav.helse.spock
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,24 +16,18 @@ import javax.sql.DataSource
 
 internal class SpleisPåminnelserTest {
     private lateinit var rapid: TestRapid
-    private lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun setup() {
-        dataSource = databaseContainer.nyTilkobling()
+        Database.tøm()
         rapid =
             TestRapid().apply {
-                Forkastelser(this, dataSource.ds)
-                Tilstandsendringer(this, dataSource.ds)
-                IkkePåminnelser(this, dataSource.ds)
-                Påminnelser(this, dataSource.ds)
-                PersonAvstemminger(this, dataSource.ds)
+                Forkastelser(this, Database.dataSource)
+                Tilstandsendringer(this, Database.dataSource)
+                IkkePåminnelser(this, Database.dataSource)
+                Påminnelser(this, Database.dataSource)
+                PersonAvstemminger(this, Database.dataSource)
             }
-    }
-
-    @AfterEach
-    fun teardown() {
-        databaseContainer.droppTilkobling(dataSource)
     }
 
     @Test
@@ -84,7 +76,7 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(Database.dataSource, vedtaksperiodeId)
 
         assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
         assertEquals("TIL_UTBETALING", påminnelse.tilstand)
@@ -102,7 +94,7 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(avstemming(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(Database.dataSource, vedtaksperiodeId)
 
         assertEquals(nyttTidspunkt, påminnelse.endringstidspunkt)
         assertEquals("TIL_UTBETALING", påminnelse.tilstand)
@@ -117,13 +109,13 @@ internal class SpleisPåminnelserTest {
         rapid.sendTestMessage(tilstandsendringsevent(vedtaksperiodeId, tilstand, endringstidspunkt))
         rapid.sendTestMessage(ikkePåminnelseEvent(vedtaksperiodeId, "TIL_UTBETALING", nyttTidspunkt))
 
-        val påminnelse = hentPåminnelseFraDatabasen(dataSource.ds, vedtaksperiodeId)
+        val påminnelse = hentPåminnelseFraDatabasen(Database.dataSource, vedtaksperiodeId)
         assertEquals(endringstidspunkt, påminnelse.endringstidspunkt)
         assertEquals(tilstand, påminnelse.tilstand)
     }
 
     private fun hentAntallPåminnelser(vedtaksperiodeId: UUID) =
-        sessionOf(dataSource.ds).use { session ->
+        sessionOf(Database.dataSource).use { session ->
             session.run(
                 queryOf(
                     "SELECT count(*) as vedtaksperiode_count FROM paminnelse WHERE vedtaksperiode_id=?;",

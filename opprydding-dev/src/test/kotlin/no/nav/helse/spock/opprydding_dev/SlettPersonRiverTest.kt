@@ -1,31 +1,23 @@
 package no.nav.helse.spock.opprydding_dev
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 internal class SlettPersonRiverTest {
-    private lateinit var dataSource: TestDataSource
     private lateinit var rapid: TestRapid
 
     @BeforeEach
     fun setup() {
-        dataSource = databaseContainer.nyTilkobling()
+        Database.tøm()
         rapid =
             TestRapid().apply {
-                SlettPersonRiver(this, dataSource.ds)
+                SlettPersonRiver(this, Database.dataSource)
             }
-    }
-
-    @AfterEach
-    fun teardown() {
-        databaseContainer.droppTilkobling(dataSource)
     }
 
     @Test
@@ -84,7 +76,7 @@ internal class SlettPersonRiverTest {
         fødselsnummer: String,
     ): Int {
         val fnrParam: Any = if (tabell == "person") fødselsnummer.toLong() else fødselsnummer
-        return sessionOf(dataSource.ds).use { session ->
+        return sessionOf(Database.dataSource).use { session ->
             session.run(
                 queryOf("SELECT COUNT(*) AS antall FROM $tabell WHERE fnr = :fnr", mapOf("fnr" to fnrParam))
                     .map { it.int("antall") }
@@ -94,7 +86,7 @@ internal class SlettPersonRiverTest {
     }
 
     private fun insertPerson(fødselsnummer: String) {
-        sessionOf(dataSource.ds).use { session ->
+        sessionOf(Database.dataSource).use { session ->
             session.run(
                 queryOf(
                     "INSERT INTO person (fnr, siste_aktivitet) VALUES (:fnr, :siste_aktivitet)",
@@ -108,7 +100,7 @@ internal class SlettPersonRiverTest {
     }
 
     private fun insertPåminnelse(fødselsnummer: String) {
-        sessionOf(dataSource.ds).use { session ->
+        sessionOf(Database.dataSource).use { session ->
             session.run(
                 queryOf(
                     """
@@ -131,7 +123,7 @@ internal class SlettPersonRiverTest {
     }
 
     private fun insertUtbetaling(fødselsnummer: String) {
-        sessionOf(dataSource.ds).use { session ->
+        sessionOf(Database.dataSource).use { session ->
             session.run(
                 queryOf(
                     """

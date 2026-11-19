@@ -15,5 +15,5 @@ dependencies {
     implementation(libs.sykepengerLibs.logging)
 
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)
-    testImplementation(libs.tbd.libs.postgres.testdatabaser)
+    testImplementation(testFixtures(libs.sykepengerLibs.postgres))
 }

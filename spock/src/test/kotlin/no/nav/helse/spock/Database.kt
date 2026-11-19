@@ -1,6 +1,12 @@
 package no.nav.helse.spock
 
-import com.github.navikt.tbd_libs.test_support.CleanupStrategy
-import com.github.navikt.tbd_libs.test_support.DatabaseContainers
+import no.nav.sykepenger.libs.postgres.TestDatabase
+import javax.sql.DataSource
 
-val databaseContainer = DatabaseContainers.container("spock", CleanupStrategy.tables("paminnelse, person, utbetaling"))
+internal object Database {
+    private val testDatabase = TestDatabase.start().also { it.migrer() }
+
+    val dataSource: DataSource = testDatabase.dataSource
+
+    fun tøm() = testDatabase.tøm("paminnelse", "person", "utbetaling")
+}

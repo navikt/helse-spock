@@ -17,5 +17,5 @@ dependencies {
 
     testImplementation(project(":spock"))
     testImplementation(libs.tbd.libs.rapids.and.rivers.test)
-    testImplementation(libs.tbd.libs.postgres.testdatabaser)
+    testImplementation(testFixtures(libs.sykepengerLibs.postgres))
 }

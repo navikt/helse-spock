@@ -1,8 +1,12 @@
 package no.nav.helse.spock.opprydding_dev
 
-import com.github.navikt.tbd_libs.test_support.CleanupStrategy
-import com.github.navikt.tbd_libs.test_support.DatabaseContainers
+import no.nav.sykepenger.libs.postgres.TestDatabase
+import javax.sql.DataSource
 
-// Gjenbruker migreringene fra :spock-modulen (samme databaseskjema), siden opprydding-dev
-// opererer på den samme databasen som selve spock-appen.
-val databaseContainer = DatabaseContainers.container("spock-opprydding-dev", CleanupStrategy.tables("paminnelse, person, utbetaling"))
+internal object Database {
+    private val testDatabase = TestDatabase.start().also { it.migrer() }
+
+    val dataSource: DataSource = testDatabase.dataSource
+
+    fun tøm() = testDatabase.tøm("paminnelse", "person", "utbetaling")
+}

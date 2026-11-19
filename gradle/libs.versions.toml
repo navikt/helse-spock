@@ -10,7 +10,7 @@ kotliquery = "com.github.seratch:kotliquery:1.9.1"
 postgresql = "org.postgresql:postgresql:42.7.14"
 rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026110308421793691732"
 sykepengerLibs-logging = "no.nav.sykepenger.libs:logging:20261116.0849"
-tbd-libs-postgres-testdatabaser = { module = "com.github.navikt.tbd-libs:postgres-testdatabaser", version.ref = "tbd-libs" }
+sykepengerLibs-postgres = "no.nav.sykepenger.libs:postgres:20261116.0849"
 tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 
 [plugins]
