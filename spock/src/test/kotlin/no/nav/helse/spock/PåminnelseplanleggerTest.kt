@@ -5,6 +5,8 @@ import no.nav.helse.spock.Tilstandsendringer.TilstandsendringEventDto.Companion.
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 
 internal class PåminnelseplanleggerTest {
@@ -31,12 +33,19 @@ internal class PåminnelseplanleggerTest {
         }
     }
 
-    @Test
-    fun `påminner AVVENTER_RETTIGHETSKATEGORI etter én time`() {
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "AVVENTER_RETTIGHETSKATEGORI",
+            "AVVENTER_SYKEPENGEGRUNNLAG",
+            "AVVENTER_SYKEPENGEGRUNNLAG_REVURDERING",
+        ],
+    )
+    fun `påminner etter én time`(tilstand: String) {
         val endringstidspunkt = enDag.atTime(12, 0)
         assertEquals(
             endringstidspunkt.plusHours(1),
-            nestePåminnelsetidspunkt("AVVENTER_RETTIGHETSKATEGORI", endringstidspunkt, 0),
+            nestePåminnelsetidspunkt(tilstand, endringstidspunkt, 0),
         )
     }
 }

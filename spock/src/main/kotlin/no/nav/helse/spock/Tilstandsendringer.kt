@@ -106,6 +106,8 @@ class Tilstandsendringer(
                 "AVVENTER_INFOTRYGDHISTORIKK",
                 "AVVENTER_A_ORDNINGEN",
                 "AVVENTER_RETTIGHETSKATEGORI",
+                "AVVENTER_SYKEPENGEGRUNNLAG",
+                "AVVENTER_SYKEPENGEGRUNNLAG_REVURDERING",
                 "AVVENTER_VILKÅRSPRØVING",
                 "AVVENTER_VILKÅRSPRØVING_REVURDERING",
                 "AVVENTER_HISTORIKK_REVURDERING",
